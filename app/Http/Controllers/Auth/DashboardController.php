@@ -40,7 +40,10 @@ class DashboardController extends Controller
         // Data untuk chart (7 hari terakhir)
         $salesData = $this->getSalesChartData(7);
         
-        return view('admin.dashboard', compact('stats', 'recentTransactions', 'topProducts', 'salesData'));
+        // Data untuk metode pembayaran
+        $paymentData = $this->getPaymentChartData();
+        
+        return view('admin.dashboard', compact('stats', 'recentTransactions', 'topProducts', 'salesData', 'paymentData'));
     }
 
     public function cashierDashboard()
@@ -88,11 +91,14 @@ class DashboardController extends Controller
             ->where('created_at', '>=', now()->subDays(30))
             ->groupBy('payment_method')
             ->get();
+            
+        $totalCount = $data->sum('count');
 
         return [
-            'labels' => $data->map(fn($d) => ucfirst($d->payment_method)),
+            'labels' => $data->map(fn($d) => ucfirst($d->payment_method ?? 'Unknown')),
             'counts' => $data->pluck('count'),
             'totals' => $data->pluck('total'),
+            'percentages' => $data->map(fn($d) => $totalCount > 0 ? round(($d->count / $totalCount) * 100) : 0),
         ];
     }
 }

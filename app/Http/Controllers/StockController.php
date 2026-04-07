@@ -40,7 +40,7 @@ class StockController extends Controller
 
         $products = $query->orderBy('name')->paginate(20);
         $categories = Category::where('is_active', true)->get();
-        
+
         // Stock summary
         $summary = [
             'total_products' => Product::count(),
@@ -66,13 +66,13 @@ class StockController extends Controller
     public function processAdjustment(StockAdjustmentRequest $request, Product $product)
     {
         $validated = $request->validated();
-        
+
         DB::beginTransaction();
-        
+
         try {
             $oldStock = $product->stock;
             $newStock = $oldStock + $validated['quantity'];
-            
+
             if ($newStock < 0) {
                 throw new \Exception('Stok tidak boleh negatif!');
             }
@@ -95,7 +95,7 @@ class StockController extends Controller
 
             return redirect()->route('admin.stock.index')
                 ->with('success', 'Stok berhasil diupdate!');
-                
+
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', $e->getMessage());
@@ -111,6 +111,9 @@ class StockController extends Controller
         return view('admin.stock.stock-in', compact('products'));
     }
 
+    /**
+     * Process Stock In
+     */
     public function processStockIn(Request $request)
     {
         $validated = $request->validate([
@@ -118,25 +121,24 @@ class StockController extends Controller
             'quantity' => 'required|integer|min:1',
             'buy_price' => 'nullable|numeric|min:0',
             'reason' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:500',
         ]);
 
         DB::beginTransaction();
-        
+
         try {
             $product = Product::lockForUpdate()->find($validated['product_id']);
             $oldStock = $product->stock;
             $newStock = $oldStock + $validated['quantity'];
 
             // Update price if provided
+            $updateData = ['stock' => $newStock];
             if ($validated['buy_price']) {
-                $product->update([
-                    'buy_price' => $validated['buy_price'],
-                    'stock' => $newStock
-                ]);
-            } else {
-                $product->increment('stock', $validated['quantity']);
+                $updateData['buy_price'] = $validated['buy_price'];
             }
+            $product->update($updateData);
 
+            // Create stock movement
             StockMovement::create([
                 'product_id' => $product->id,
                 'user_id' => Auth::id(),
@@ -149,10 +151,10 @@ class StockController extends Controller
 
             DB::commit();
             return redirect()->route('admin.stock.index')->with('success', 'Stok masuk berhasil dicatat!');
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', 'Gagal mencatat stok masuk: ' . $e->getMessage());
         }
     }
 

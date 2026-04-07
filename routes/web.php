@@ -78,6 +78,8 @@ Route::middleware(['auth', 'active'])->group(function () {
         // Products
         Route::resource('products', ProductController::class);
         Route::post('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
+        Route::get('products/search', [ProductController::class, 'search'])->name('products.search');
+        Route::get('products/by-barcode', [ProductController::class, 'getByBarcode'])->name('products.by-barcode');
         
         // Categories
         Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);

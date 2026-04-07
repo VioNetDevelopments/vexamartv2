@@ -234,27 +234,22 @@
                         <canvas id="paymentChart"></canvas>
                     </div>
                     <div class="mt-6 space-y-3">
-                        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-navy-800">
-                            <div class="flex items-center gap-3">
-                                <div class="w-3 h-3 rounded-full bg-accent-500"></div>
-                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Tunai</span>
+                        @php
+                            $colors = ['bg-accent-500', 'bg-success', 'bg-warning', 'bg-purple-500', 'bg-pink-500', 'bg-cyan-500'];
+                        @endphp
+                        @forelse($paymentData['labels'] as $index => $label)
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-navy-800">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-3 h-3 rounded-full {{ $colors[$index % count($colors)] }}"></div>
+                                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ $label }}</span>
+                                </div>
+                                <span class="text-sm font-bold text-navy-900 dark:text-white">{{ $paymentData['percentages'][$index] }}%</span>
                             </div>
-                            <span class="text-sm font-bold text-navy-900 dark:text-white">65%</span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-navy-800">
-                            <div class="flex items-center gap-3">
-                                <div class="w-3 h-3 rounded-full bg-success"></div>
-                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">QRIS</span>
+                        @empty
+                            <div class="text-center py-4">
+                                <p class="text-xs text-slate-400">Belum ada data pembayaran</p>
                             </div>
-                            <span class="text-sm font-bold text-navy-900 dark:text-white">25%</span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-navy-800">
-                            <div class="flex items-center gap-3">
-                                <div class="w-3 h-3 rounded-full bg-warning"></div>
-                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Lainnya</span>
-                            </div>
-                            <span class="text-sm font-bold text-navy-900 dark:text-white">10%</span>
-                        </div>
+                        @endforelse
                     </div>
                 </div>
             </div>
@@ -397,6 +392,7 @@
 
         // Data dari database
         const chartData = @json($salesData ?? []);
+        const paymentStats = @json($paymentData ?? ['labels' => [], 'percentages' => []]);
         const allProducts = @json($topProducts ?? []);
         const allTransactions = @json($recentTransactions ?? []);
         let salesChart;
@@ -589,10 +585,10 @@
                 new Chart(paymentCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Tunai', 'QRIS', 'Debit', 'E-Wallet'],
+                        labels: paymentStats.labels,
                         datasets: [{
-                            data: [65, 25, 7, 3],
-                            backgroundColor: ['#2563EB', '#16A34A', '#F59E0B', '#8B5CF6'],
+                            data: paymentStats.percentages,
+                            backgroundColor: ['#2563EB', '#16A34A', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4'],
                             borderWidth: 0,
                             hoverOffset: 10
                         }]
