@@ -60,26 +60,29 @@
             <!-- Navigation Section -->
             <div class="flex-1 overflow-y-auto px-4 py-6 space-y-8 custom-scrollbar">
                 @php
-                    $menuGroups = [
-                        'MENU UTAMA' => [
-                            ['name' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => route('admin.dashboard'), 'role' => ['owner', 'admin']],
-                            ['name' => 'Kasir (POS)', 'icon' => 'monitor-smartphone', 'route' => route('cashier.pos'), 'role' => ['cashier', 'admin', 'owner']],
-                        ],
-                        'MANAJEMEN' => [
-                            ['name' => 'Produk', 'icon' => 'package', 'route' => route('admin.products.index'), 'role' => ['owner', 'admin']],
-                            ['name' => 'Transaksi', 'icon' => 'receipt', 'route' => route('admin.transactions.index'), 'role' => ['owner', 'admin']],
-                            ['name' => 'Stok', 'icon' => 'warehouse', 'route' => route('admin.stock.index'), 'role' => ['owner', 'admin']],
-                            ['name' => 'Pelanggan', 'icon' => 'users', 'route' => route('admin.customers.index'), 'role' => ['owner', 'admin']],
-                        ],
-                        'ANALITIK' => [
-                            ['name' => 'Laporan', 'icon' => 'bar-chart-3', 'route' => route('admin.reports.index'), 'role' => ['owner', 'admin']],
-                        ],
-                        'SISTEM' => [
-                            ['name' => 'Pengaturan', 'icon' => 'settings', 'route' => route('admin.settings.index'), 'role' => ['owner', 'admin']],
-                        ]
-                    ];
-                    $userRole = auth()->user()->role;
-                @endphp
+    $menuGroups = [
+        'MENU UTAMA' => [
+            ['name' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => route('admin.dashboard'), 'role' => ['owner', 'admin']],
+            ['name' => 'Kasir (POS)', 'icon' => 'monitor-smartphone', 'route' => route('cashier.pos'), 'role' => ['cashier', 'admin', 'owner']],
+        ],
+        'MANAJEMEN' => [
+            ['name' => 'Produk', 'icon' => 'package', 'route' => route('admin.products.index'), 'role' => ['owner', 'admin']],
+            ['name' => 'Transaksi', 'icon' => 'receipt', 'route' => route('admin.transactions.index'), 'role' => ['owner', 'admin']],
+            ['name' => 'Stok', 'icon' => 'warehouse', 'route' => route('admin.stock.index'), 'role' => ['owner', 'admin']],
+            ['name' => 'Pelanggan', 'icon' => 'users', 'route' => route('admin.customers.index'), 'role' => ['owner', 'admin']],
+            ['name' => 'User', 'icon' => 'user-cog', 'route' => route('admin.users.index'), 'role' => ['owner', 'admin']],
+        ],
+        'ANALITIK' => [
+            ['name' => 'Laporan', 'icon' => 'bar-chart-3', 'route' => route('admin.reports.index'), 'role' => ['owner', 'admin']],
+            ['name' => 'Activity Log', 'icon' => 'activity', 'route' => route('admin.activity-logs'), 'role' => ['owner', 'admin']],
+        ],
+        'SISTEM' => [
+            ['name' => 'Pengaturan', 'icon' => 'settings', 'route' => route('admin.settings.index'), 'role' => ['owner', 'admin']],
+        ]
+    ];
+
+    $userRole = auth()->user()->role;
+@endphp
 
                 @foreach($menuGroups as $group => $items)
                     @php

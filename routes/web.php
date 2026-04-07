@@ -1,7 +1,15 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
+// Controllers
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\DashboardController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PosController;
@@ -11,12 +19,22 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\ActivityLogController;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\UserController;
+
+/*
+|--------------------------------------------------------------------------
+| Default Route (FIXED)
+|--------------------------------------------------------------------------
+*/
+Route::get('/', function () {
+    if (Auth::check()) {
+        return Auth::user()->role === 'cashier'
+            ? redirect()->route('cashier.pos')
+            : redirect()->route('admin.dashboard');
+    }
+    return redirect()->route('login');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -35,19 +53,34 @@ Route::middleware('guest')->group(function () {
 | Protected Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'active'])->group(function () {
+Route::middleware(['auth'])->group(function () {
+
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Admin Routes
+    /*
+    |--------------------------------------------------------------------------
+    | Activity Logs (Tambahan sesuai request)
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('role:owner,admin')
+        ->get('/admin/activity-logs', [ActivityLogController::class, 'index'])
+        ->name('admin.activity-logs');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Routes
+    |--------------------------------------------------------------------------
+    */
     Route::middleware('role:owner,admin')->prefix('admin')->name('admin.')->group(function () {
+
         Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard');
         Route::get('/search', [SearchController::class, 'globalSearch'])->name('search');
-        
-        // Route untuk chart data dinamis
-        Route::get('/dashboard/chart-data', function(Request $request) {
-            $period = $request->get('period', '7');
-            $days = (int)$period;
-            
+
+        // Chart Data
+        Route::get('/dashboard/chart-data', function (Request $request) {
+            $period = $request->input('period', '7');
+            $days = (int) $period;
+
             $sales = DB::table('transactions')
                 ->selectRaw('DATE(created_at) as date, SUM(grand_total) as total')
                 ->where('created_at', '>=', now()->subDays($days))
@@ -55,43 +88,42 @@ Route::middleware(['auth', 'active'])->group(function () {
                 ->groupBy('date')
                 ->orderBy('date')
                 ->get();
-            
-            // Fill missing dates
+
             $allDates = [];
             for ($i = $days - 1; $i >= 0; $i--) {
                 $date = now()->subDays($i)->format('Y-m-d');
                 $allDates[$date] = 0;
             }
-            
+
             foreach ($sales as $sale) {
                 $allDates[$sale->date] = (float) $sale->total;
             }
-            
+
             return response()->json([
-                'labels' => collect($allDates)->keys()->map(fn($d) => \Carbon\Carbon::parse($d)->format('d M')),
+                'labels' => collect($allDates)->keys()->map(fn($d) => Carbon::parse($d)->format('d M')),
                 'data' => array_values($allDates),
             ]);
         })->name('dashboard.chart-data');
-        Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs');
+
         Route::get('/verification', fn() => view('admin.verification'))->name('verification');
-        
+
         // Products
         Route::resource('products', ProductController::class);
         Route::post('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
         Route::get('products/search', [ProductController::class, 'search'])->name('products.search');
         Route::get('products/by-barcode', [ProductController::class, 'getByBarcode'])->name('products.by-barcode');
-        
+
         // Categories
         Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
-        
+
         // Reports
         Route::prefix('reports')->name('reports.')->group(function () {
             Route::get('/', [ReportController::class, 'index'])->name('index');
             Route::get('/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');
             Route::get('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
         });
-        
-        // Stock Management
+
+        // Stock
         Route::prefix('stock')->name('stock.')->group(function () {
             Route::get('/', [StockController::class, 'index'])->name('index');
             Route::get('/{product}/adjust', [StockController::class, 'adjust'])->name('adjust');
@@ -102,28 +134,33 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::get('/history/{product}', [StockController::class, 'history'])->name('history.product');
             Route::get('/api/low-stock', [StockController::class, 'getLowStock'])->name('api.low-stock');
         });
-        
+
         // Customers
         Route::resource('customers', CustomerController::class)->names('customers');
         Route::post('customers/{customer}/add-points', [CustomerController::class, 'addPoints'])->name('customers.add-points');
-        
+
         // Transactions
         Route::prefix('transactions')->name('transactions.')->group(function () {
             Route::get('/', [TransactionController::class, 'index'])->name('index');
             Route::get('/{transaction}', [TransactionController::class, 'show'])->name('show');
             Route::get('/{transaction}/print', [TransactionController::class, 'print'])->name('print');
         });
-        
+
         // Settings
         Route::prefix('settings')->name('settings.')->group(function () {
             Route::get('/', [SettingController::class, 'index'])->name('index');
-            Route::post('/', [SettingController::class, 'update'])->name('update');
+            Route::put('/', [SettingController::class, 'update'])->name('update');
             Route::get('/backup', [SettingController::class, 'backup'])->name('backup');
         });
     });
 
-    // Cashier Routes
+    /*
+    |--------------------------------------------------------------------------
+    | Cashier Routes
+    |--------------------------------------------------------------------------
+    */
     Route::middleware('role:cashier,admin,owner')->prefix('cashier')->name('cashier.')->group(function () {
+
         Route::get('/dashboard', [DashboardController::class, 'cashierDashboard'])->name('dashboard');
         Route::get('/pos', [PosController::class, 'index'])->name('pos');
         Route::get('/products', [PosController::class, 'getProducts'])->name('products.search');
@@ -132,13 +169,19 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/transaction/{id}', [PosController::class, 'getTransaction'])->name('transaction.show');
     });
 
-    // Default redirect
-    Route::get('/', function() {
-        if (Auth::check()) { // ← Gunakan Auth::check() bukan auth()->check()
-            return Auth::user()->role === 'cashier' 
-                ? redirect()->route('cashier.pos')
-                : redirect()->route('admin.dashboard');
-        }
-        return redirect()->route('login');
+    /*
+    |--------------------------------------------------------------------------
+    | User Management
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('role:owner,admin')->prefix('admin/users')->name('admin.users.')->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/create', [UserController::class, 'create'])->name('create');
+        Route::post('/', [UserController::class, 'store'])->name('store');
+        Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
+        Route::put('/{user}', [UserController::class, 'update'])->name('update');
+        Route::post('/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('toggle-status');
+        Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
     });
+
 });

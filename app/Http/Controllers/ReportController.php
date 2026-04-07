@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Customer;
 use App\Exports\SalesExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,12 +14,15 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
 {
+    /**
+     * Display reports dashboard
+     */
     public function index(Request $request)
     {
         // Default filter: bulan ini
-        $dateFrom = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
-        $dateTo = $request->get('date_to', now()->endOfMonth()->format('Y-m-d'));
-        $groupBy = $request->get('group_by', 'daily'); // daily, weekly, monthly
+        $dateFrom = $request->input('date_from', now()->startOfMonth()->format('Y-m-d'));
+        $dateTo = $request->input('date_to', now()->endOfMonth()->format('Y-m-d'));
+        $groupBy = $request->input('group_by', 'daily');
 
         // Query dasar
         $query = Transaction::whereBetween('created_at', [$dateFrom, $dateTo . ' 23:59:59'])
@@ -48,8 +52,11 @@ class ReportController extends Controller
         // Top Products
         $topProducts = $this->getTopProducts($dateFrom, $dateTo);
 
-        // Payment Method Distribution
+        // Payment Distribution
         $paymentDistribution = $this->getPaymentDistribution($dateFrom, $dateTo);
+
+        // Category Performance
+        $categoryPerformance = $this->getCategoryPerformance($dateFrom, $dateTo);
 
         // Transactions for table
         $transactions = $query->with(['user', 'customer'])
@@ -61,14 +68,24 @@ class ReportController extends Controller
         $users = \App\Models\User::where('is_active', true)->get();
 
         return view('admin.reports.index', compact(
-            'stats', 'chartData', 'topProducts', 'paymentDistribution',
-            'transactions', 'users', 'dateFrom', 'dateTo', 'groupBy'
+            'stats',
+            'chartData',
+            'topProducts',
+            'paymentDistribution',
+            'categoryPerformance',
+            'transactions',
+            'users',
+            'dateFrom',
+            'dateTo',
+            'groupBy'
         ));
     }
 
+    /**
+     * Calculate profit
+     */
     private function calculateProfit($from, $to)
     {
-        // Profit = (sell_price - buy_price) * qty
         return DB::table('transaction_items')
             ->join('products', 'transaction_items.product_id', '=', 'products.id')
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
@@ -78,15 +95,18 @@ class ReportController extends Controller
             ->value('profit') ?? 0;
     }
 
+    /**
+     * Get chart data
+     */
     private function getChartData($from, $to, $groupBy)
     {
-        $format = match($groupBy) {
-            'weekly' => '%Y-%u', // Week number
+        $format = match ($groupBy) {
+            'weekly' => '%Y-%u',
             'monthly' => '%Y-%m',
-            default => '%Y-%m-%d', // Daily
+            default => '%Y-%m-%d',
         };
 
-        $labelFormat = match($groupBy) {
+        $labelFormat = match ($groupBy) {
             'weekly' => 'W',
             'monthly' => 'M Y',
             default => 'd M',
@@ -106,6 +126,9 @@ class ReportController extends Controller
         ];
     }
 
+    /**
+     * Get top products
+     */
     private function getTopProducts($from, $to, $limit = 10)
     {
         return DB::table('transaction_items')
@@ -120,6 +143,9 @@ class ReportController extends Controller
             ->get();
     }
 
+    /**
+     * Get payment distribution
+     */
     private function getPaymentDistribution($from, $to)
     {
         return Transaction::selectRaw('payment_method, COUNT(*) as count, SUM(grand_total) as total')
@@ -134,10 +160,30 @@ class ReportController extends Controller
             ]);
     }
 
+    /**
+     * Get category performance
+     */
+    private function getCategoryPerformance($from, $to)
+    {
+        return DB::table('transaction_items')
+            ->join('products', 'transaction_items.product_id', '=', 'products.id')
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->whereBetween('transactions.created_at', [$from, $to . ' 23:59:59'])
+            ->where('transactions.payment_status', 'paid')
+            ->selectRaw('categories.name, SUM(transaction_items.qty) as total_sold, SUM(transaction_items.subtotal) as total_revenue')
+            ->groupBy('categories.id', 'categories.name')
+            ->orderByDesc('total_revenue')
+            ->get();
+    }
+
+    /**
+     * Export to Excel
+     */
     public function exportExcel(Request $request)
     {
-        $dateFrom = $request->get('date_from', now()->startOfMonth());
-        $dateTo = $request->get('date_to', now()->endOfMonth());
+        $dateFrom = $request->input('date_from', now()->startOfMonth());
+        $dateTo = $request->input('date_to', now()->endOfMonth());
 
         return Excel::download(
             new SalesExport($dateFrom, $dateTo),
@@ -145,10 +191,13 @@ class ReportController extends Controller
         );
     }
 
+    /**
+     * Export to PDF
+     */
     public function exportPdf(Request $request)
     {
-        $dateFrom = $request->get('date_from', now()->startOfMonth());
-        $dateTo = $request->get('date_to', now()->endOfMonth());
+        $dateFrom = $request->input('date_from', now()->startOfMonth());
+        $dateTo = $request->input('date_to', now()->endOfMonth());
 
         $stats = [
             'total_sales' => Transaction::whereBetween('created_at', [$dateFrom, $dateTo])->sum('grand_total'),
@@ -161,7 +210,7 @@ class ReportController extends Controller
             ->get();
 
         $pdf = Pdf::loadView('admin.reports.pdf', compact('stats', 'transactions', 'dateFrom', 'dateTo'));
-        
+
         return $pdf->download('laporan-penjualan.pdf');
     }
 }

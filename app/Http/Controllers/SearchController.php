@@ -10,7 +10,7 @@ class SearchController extends Controller
 {
     public function globalSearch(Request $request)
     {
-        $query = $request->get('q');
+        $query = $request->input('q');
         
         if (strlen($query) < 2) {
             return response()->json([]);

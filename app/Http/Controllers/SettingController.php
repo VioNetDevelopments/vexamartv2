@@ -36,8 +36,14 @@ class SettingController extends Controller
 
         // Update text settings
         $settings = [
-            'store_name', 'store_address', 'store_phone', 'store_email',
-            'tax_rate', 'currency', 'receipt_header', 'receipt_footer'
+            'store_name',
+            'store_address',
+            'store_phone',
+            'store_email',
+            'tax_rate',
+            'currency',
+            'receipt_header',
+            'receipt_footer'
         ];
 
         foreach ($settings as $key) {
@@ -51,16 +57,13 @@ class SettingController extends Controller
 
     public function backup()
     {
-        // Simple backup - in production use spatie/laravel-backup
         $filename = 'vexamart-backup-' . date('Y-m-d-H-i') . '.sql';
         $path = storage_path('app/backups/' . $filename);
-        
-        // Create backup directory
+
         if (!file_exists(dirname($path))) {
             mkdir(dirname($path), 0755, true);
         }
-        
-        // Execute mysqldump
+
         $command = sprintf(
             'mysqldump --user=%s --password=%s --host=%s %s > %s',
             config('database.connections.mysql.username'),
@@ -69,15 +72,15 @@ class SettingController extends Controller
             config('database.connections.mysql.database'),
             $path
         );
-        
+
         $returnVar = NULL;
         $output = NULL;
         exec($command, $output, $returnVar);
-        
+
         if ($returnVar === 0 && file_exists($path)) {
             return response()->download($path)->deleteFileAfterSend(true);
         }
-        
+
         return back()->with('error', 'Gagal membuat backup database');
     }
 }
