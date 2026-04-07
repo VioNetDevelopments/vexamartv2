@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\ActivityLogController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth; // ← TAMBAHKAN INI
+use App\Http\Controllers\Auth\RegisterController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +23,8 @@ use Illuminate\Support\Facades\Auth; // ← TAMBAHKAN INI
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
+    Route::get('/register', fn() => view('auth.register'))->name('register');
+    Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
 });
 
 /*

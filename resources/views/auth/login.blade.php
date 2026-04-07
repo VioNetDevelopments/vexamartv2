@@ -14,192 +14,165 @@
         
         body {
             font-family: 'Inter', sans-serif;
-            background: #FFFFFF;
+            background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 40px 20px;
         }
         
-        .auth-container {
-            position: relative;
-            width: 1000px;
+        /* Main Container - Landscape PC Layout */
+        .login-container {
+            width: 1200px;
             max-width: 95%;
             background: white;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15);
+            border-radius: 32px;
+            box-shadow: 0 25px 80px -20px rgba(15, 23, 42, 0.15);
             overflow: hidden;
-            display: flex;
-            min-height: 650px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 700px;
         }
         
-        /* Panel Kiri (Navy Blue Theme) */
-        .auth-panel {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 50%;
-            height: 100%;
-            transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
-            z-index: 10;
+        /* Left Side - Branding */
+        .brand-section {
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+            padding: 60px 50px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 35px;
-            text-align: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
         }
         
-        .auth-panel.login {
-            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-            transform: translateX(0);
+        .brand-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
+            animation: pulse 8s ease-in-out infinite;
         }
         
-        .auth-panel.register {
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+        
+        .brand-logo {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .brand-logo-icon {
+            width: 80px;
+            height: 80px;
             background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
-            transform: translateX(100%);
-        }
-        
-        .logo-container {
-            width: 90px;
-            height: 90px;
             border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1.5rem;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
+            margin-bottom: 24px;
+            box-shadow: 0 20px 40px rgba(37, 99, 235, 0.4);
         }
         
-        .logo-container svg {
-            width: 50px;
-            height: 50px;
+        .brand-logo-icon svg {
+            width: 40px;
+            height: 40px;
             color: white;
         }
         
-        .panel-content { color: white; z-index: 1; }
-        .panel-content h1 { 
-            font-size: 1.5rem; 
-            font-weight: 700; 
-            margin-bottom: 0.75rem;
-            line-height: 1.4;
-        }
-        .panel-content p { 
-            font-size: 0.9rem; 
-            opacity: 0.9; 
-            margin-bottom: 2rem;
-            line-height: 1.5;
+        .brand-title {
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 2;
         }
         
-        .btn-toggle {
-            padding: 14px 45px;
-            border: 2px solid white;
-            background: transparent;
-            color: white;
-            border-radius: 14px;
-            font-weight: 600;
+        .brand-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .brand-features {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 16px;
             font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.4s ease;
         }
         
-        .btn-toggle:hover {
-            background: white;
-            color: #0F172A;
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            background: rgba(37, 99, 235, 0.3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        /* Container Form di Kanan */
-        .forms-container {
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: 50%;
-            height: 100%;
-            overflow: hidden;
+        .feature-icon svg {
+            width: 14px;
+            height: 14px;
+            color: #60A5FA;
         }
         
-        /* Individual Forms */
-        .form-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            padding: 50px;
+        /* Right Side - Form */
+        .form-section {
+            padding: 60px 50px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             background: white;
-            transition: all 0.6s ease-in-out;
+            position: relative;
         }
         
-        /* Login Form - Default Visible */
-        #loginForm {
-            opacity: 1;
-            z-index: 2;
-            transform: translateX(0);
+        .form-header {
+            margin-bottom: 40px;
         }
         
-        /* Register Form - Default Hidden */
-        #registerForm {
-            opacity: 0;
-            z-index: 1;
-            transform: translateX(100%);
+        .form-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0F172A;
+            margin-bottom: 8px;
         }
         
-        /* Saat Toggle ke Register */
-        #loginForm.hidden {
-            opacity: 0;
-            z-index: 1;
-            transform: translateX(-100%);
-            pointer-events: none;
+        .form-subtitle {
+            color: #64748B;
+            font-size: 1rem;
         }
         
-        #registerForm.visible {
-            opacity: 1;
-            z-index: 2;
-            transform: translateX(0);
-            pointer-events: auto;
+        .form-group {
+            margin-bottom: 24px;
         }
         
-        .form-header { margin-bottom: 2rem; }
-        .form-header h2 { 
-            font-size: 1.75rem; 
-            font-weight: 700; 
-            color: #0F172A; 
-            margin-bottom: 0.5rem; 
-        }
-        .form-header p { color: #64748B; font-size: 0.95rem; }
-        
-        .input-group { width: 100%; margin-bottom: 1.25rem; }
-        .input-group label { 
-            display: block; 
-            font-size: 0.85rem; 
-            font-weight: 600; 
-            color: #0F172A; 
-            margin-bottom: 0.5rem; 
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #0F172A;
+            margin-bottom: 8px;
         }
         
-        .input-wrapper { position: relative; }
-        .input-wrapper input {
-            width: 100%;
-            padding: 14px 16px 14px 48px;
-            border: 2px solid #E2E8F0;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            background: #F8FAFC;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
-        }
-        .input-wrapper input:focus {
-            outline: none;
-            border-color: #2563EB;
-            background: white;
-            box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.15);
+        .input-wrapper {
+            position: relative;
         }
         
         .input-icon {
@@ -212,6 +185,28 @@
             height: 20px;
         }
         
+        .form-input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            border: 2px solid #E2E8F0;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            background: #F8FAFC;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #2563EB;
+            background: white;
+            box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.1);
+        }
+        
+        .form-input::placeholder {
+            color: #94A3B8;
+        }
+        
         .password-toggle {
             position: absolute;
             right: 16px;
@@ -222,508 +217,403 @@
             width: 20px;
             height: 20px;
         }
-        .password-toggle:hover { color: #2563EB; }
         
-        .btn-submit {
-            width: 100%;
-            padding: 15px;
-            background: #0F172A;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.25);
-            margin-top: 0.75rem;
-        }
-        .btn-submit:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(15, 23, 42, 0.35);
-            background: #1E293B;
+        .password-toggle:hover {
+            color: #2563EB;
         }
         
-        .error-message {
-            background: #FEF2F2;
-            border: 1px solid #FECACA;
-            color: #DC2626;
-            padding: 12px 16px;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .success-message {
-            background: #F0FDF4;
-            border: 1px solid #BBF7D0;
-            color: #16A34A;
-            padding: 12px 16px;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            font-size: 0.85rem;
-        }
-        
-        .remember-forgot {
+        .form-options {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 1rem 0 1.5rem;
-            font-size: 0.85rem;
+            margin-bottom: 32px;
         }
         
         .remember-me {
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #64748B;
             cursor: pointer;
         }
         
         .remember-me input {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             accent-color: #2563EB;
             cursor: pointer;
         }
         
+        .remember-me span {
+            font-size: 0.875rem;
+            color: #64748B;
+        }
+        
         .forgot-link {
+            font-size: 0.875rem;
             color: #2563EB;
             text-decoration: none;
             font-weight: 500;
         }
-        .forgot-link:hover { text-decoration: underline; }
+        
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.3);
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(15, 23, 42, 0.4);
+        }
+        
+        .btn-submit:active {
+            transform: translateY(0);
+        }
         
         .divider {
             display: flex;
             align-items: center;
-            margin: 1.5rem 0;
+            margin: 32px 0;
             color: #94A3B8;
-            font-size: 0.85rem;
+            font-size: 0.875rem;
         }
-        .divider::before, .divider::after {
+        
+        .divider::before,
+        .divider::after {
             content: '';
             flex: 1;
             height: 1px;
             background: linear-gradient(90deg, transparent, #E2E8F0, transparent);
         }
-        .divider span { padding: 0 1.25rem; }
         
-        .social-login { display: flex; justify-content: center; gap: 1rem; }
+        .divider span {
+            padding: 0 16px;
+        }
+        
+        .social-login {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        
         .social-btn {
-            width: 50px;
-            height: 50px;
+            width: 56px;
+            height: 56px;
             border: 2px solid #E2E8F0;
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.4s ease;
+            transition: all 0.3s ease;
             background: white;
             text-decoration: none;
         }
+        
         .social-btn:hover {
             border-color: #2563EB;
-            transform: translateY(-5px) scale(1.1);
+            transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
         }
-        .social-btn svg { width: 24px; height: 24px; }
         
-        .demo-credentials {
-            margin-top: 2rem;
-            padding: 1rem;
-            background: #F8FAFC;
-            border-radius: 12px;
+        .social-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .demo-box {
+            margin-top: 32px;
+            padding: 20px;
+            background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+            border-radius: 16px;
             border: 1px dashed #CBD5E1;
         }
-        .demo-credentials p {
-            font-size: 0.75rem;
-            color: #64748B;
-            margin-bottom: 0.5rem;
+        
+        .demo-title {
+            font-size: 0.8rem;
             font-weight: 600;
+            color: #64748B;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .demo-credentials code {
-            display: block;
-            font-size: 0.7rem;
+        
+        .demo-credential {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
             color: #0F172A;
             background: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            margin: 2px 0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
             font-family: monospace;
         }
         
-        .terms-text {
-            font-size: 0.75rem;
-            color: #94A3B8;
+        .demo-credential:last-child {
+            margin-bottom: 0;
+        }
+        
+        .error-message {
+            background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+            border: 1px solid #FECACA;
+            color: #DC2626;
+            padding: 14px 16px;
+            border-radius: 14px;
+            margin-bottom: 24px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .success-message {
+            background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+            border: 1px solid #BBF7D0;
+            color: #16A34A;
+            padding: 14px 16px;
+            border-radius: 14px;
+            margin-bottom: 24px;
+            font-size: 0.875rem;
+        }
+        
+        /* Register Link */
+        .register-link {
             text-align: center;
-            margin-top: 1.5rem;
-            line-height: 1.6;
+            margin-top: 32px;
+            font-size: 0.9rem;
+            color: #64748B;
         }
-        .terms-text a { color: #2563EB; font-weight: 600; text-decoration: none; }
-        .terms-text a:hover { text-decoration: underline; }
         
-        .password-strength { margin-top: 0.75rem; }
-        .strength-bar { height: 4px; background: #E2E8F0; border-radius: 2px; overflow: hidden; margin-bottom: 0.5rem; }
-        .strength-fill { height: 100%; width: 0%; transition: all 0.3s ease; border-radius: 2px; }
-        .strength-fill.weak { width: 25%; background: #EF4444; }
-        .strength-fill.fair { width: 50%; background: #F59E0B; }
-        .strength-fill.good { width: 75%; background: #3B82F6; }
-        .strength-fill.strong { width: 100%; background: #16A34A; }
-        .strength-text { font-size: 0.75rem; font-weight: 600; text-align: right; }
-        .strength-text.weak { color: #EF4444; }
-        .strength-text.fair { color: #F59E0B; }
-        .strength-text.good { color: #3B82F6; }
-        .strength-text.strong { color: #16A34A; }
-        
-        /* Animations */
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        .register-link a {
+            color: #2563EB;
+            font-weight: 600;
+            text-decoration: none;
         }
-        .logo-container { animation: float 3s ease-in-out infinite; }
+        
+        .register-link a:hover {
+            text-decoration: underline;
+        }
         
         /* Responsive */
-        @media (max-width: 768px) {
-            .auth-container { 
-                flex-direction: column; 
-                height: auto; 
-                min-height: auto;
-                border-radius: 16px;
+        @media (max-width: 1024px) {
+            .login-container {
+                grid-template-columns: 1fr;
+                max-width: 500px;
             }
-            .auth-panel { 
-                display: none; 
+            .brand-section {
+                display: none;
             }
-            .forms-container { 
-                position: relative; 
-                width: 100%; 
-                height: auto;
-                left: 0;
+            .form-section {
+                padding: 40px 30px;
             }
-            .form-container { 
-                position: relative; 
-                width: 100%; 
-                opacity: 1 !important; 
-                z-index: 2 !important; 
-                padding: 30px 25px;
-                transform: translateX(0) !important;
+        }
+        
+        @media (max-width: 640px) {
+            body {
+                padding: 20px 16px;
             }
-            #registerForm { display: none; }
-            #registerForm.visible { display: flex; }
-            .form-header h2 { font-size: 1.5rem; }
+            .form-section {
+                padding: 30px 20px;
+            }
+            .form-title {
+                font-size: 1.75rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="auth-container">
-        <!-- Sliding Panel (KIRI) -->
-        <div class="auth-panel login" id="authPanel">
-            <div class="logo-container">
-                <!-- VexaMart Logo Icon -->
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-13.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"/>
-                </svg>
+    <div class="login-container">
+        <!-- Left Side - Branding -->
+        <div class="brand-section">
+            <div class="brand-logo">
+                <div class="brand-logo-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-13.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"/>
+                    </svg>
+                </div>
+                <h1 class="brand-title">VexaMart POS</h1>
+                <p class="brand-description">
+                    Sistem Point of Sale modern untuk minimarket Anda. Kelola penjualan, stok, dan laporan dengan mudah dan profesional.
+                </p>
             </div>
-            <div class="panel-content">
-                <h1 id="panelTitle">Selamat Datang di VexaMart</h1>
-                <p id="panelText">Sistem Point of Sale Modern untuk Minimarket Anda - Cepat, Aman, dan Profesional</p>
-                <button class="btn-toggle" id="toggleBtn" onclick="toggleAuth()">Buat Akun Baru</button>
+            
+            <div class="brand-features">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <span>Transaksi Cepat & Mudah</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <span>Manajemen Stok Otomatis</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <span>Laporan Real-time</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <span>Multi Payment Support</span>
+                </div>
             </div>
         </div>
         
-        <!-- Forms Container (KANAN) -->
-        <div class="forms-container">
-            <!-- Login Form -->
-            <div class="form-container" id="loginForm">
-                <div class="form-header">
-                    <h2>Masuk ke Akun</h2>
-                    <p>Silakan login untuk mengakses dashboard VexaMart</p>
+        <!-- Right Side - Login Form -->
+        <div class="form-section">
+            <div class="form-header">
+                <h2 class="form-title">Selamat Datang! 👋</h2>
+                <p class="form-subtitle">Masuk ke akun Anda untuk melanjutkan</p>
+            </div>
+            
+            @if ($errors->any())
+                <div class="error-message">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    {{ $errors->first() }}
+                </div>
+            @endif
+            
+            @if (session('success'))
+                <div class="success-message">{{ session('success') }}</div>
+            @endif
+            
+            @if (session('error'))
+                <div class="error-message">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    {{ session('error') }}
+                </div>
+            @endif
+            
+            <form method="POST" action="{{ route('login') }}" id="loginForm">
+                @csrf
+                
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                        </svg>
+                        <input type="email" id="email" name="email" class="form-input" 
+                               placeholder="nama@email.com" 
+                               value="{{ old('email') }}" required autocomplete="email">
+                    </div>
                 </div>
                 
-                @if ($errors->any())
-                    <div class="error-message">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                         </svg>
-                        {{ $errors->first() }}
-                    </div>
-                @endif
-                
-                @if (session('success'))
-                    <div class="success-message">{{ session('success') }}</div>
-                @endif
-                
-                @if (session('error'))
-                    <div class="error-message">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <input type="password" id="password" name="password" class="form-input" 
+                               placeholder="••••••••" required autocomplete="current-password">
+                        <svg class="password-toggle" onclick="togglePassword()" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                         </svg>
-                        {{ session('error') }}
                     </div>
-                @endif
+                </div>
                 
-                <form method="POST" action="{{ route('login') }}" id="loginFormEl">
-                    @csrf
-                    <div class="input-group">
-                        <label for="login-email">Email Address</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
-                            </svg>
-                            <input type="email" id="login-email" name="email" placeholder="admin@vexamart.com" required value="{{ old('email') }}" autocomplete="email">
-                        </div>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="login-password">Password</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                            </svg>
-                            <input type="password" id="login-password" name="password" placeholder="••••••••" required autocomplete="current-password">
-                            <svg class="password-toggle" id="toggleLoginPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24" onclick="togglePassword('login-password', this)">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    
-                    <div class="remember-forgot">
-                        <label class="remember-me">
-                            <input type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }}>
-                            <span>Ingat Saya</span>
-                        </label>
-                        <a href="#" class="forgot-link">Lupa Password?</a>
-                    </div>
-                    
-                    <button type="submit" class="btn-submit" id="loginBtn">
-                        <span id="loginBtnText">Masuk ke Dashboard</span>
-                        <span id="loginBtnLoading" style="display:none;">Memproses...</span>
-                    </button>
-                </form>
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }}>
+                        <span>Ingat Saya</span>
+                    </label>
+                    <a href="#" class="forgot-link">Lupa Password?</a>
+                </div>
                 
-                <div class="divider"><span>atau gunakan demo</span></div>
-                
-                <!-- Demo Credentials -->
-                <div class="demo-credentials">
-                    <p>🔑 Credential Demo:</p>
-                    <code>👤 Admin: admin@vexamart.com / password</code>
-                    <code>👤 Kasir: kasir@vexamart.com / password</code>
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <span id="btnText">Masuk ke Dashboard</span>
+                    <span id="btnLoading" style="display:none;">Memproses...</span>
+                </button>
+            </form>
+            
+            <div class="divider">
+                <span>atau gunakan demo</span>
+            </div>
+            
+            <div class="demo-box">
+                <div class="demo-title">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                    Credential Demo:
+                </div>
+                <div class="demo-credential">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                    </svg>
+                    Admin: admin@vexamart.com / password
+                </div>
+                <div class="demo-credential">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                    </svg>
+                    Kasir: kasir@vexamart.com / password
                 </div>
             </div>
             
-            <!-- Register Form -->
-            <div class="form-container" id="registerForm">
-                <div class="form-header">
-                    <h2>Buat Akun Baru</h2>
-                    <p>Lengkapi form untuk bergabung dengan VexaMart</p>
-                </div>
-                
-                @if ($errors->any())
-                    <div class="error-message">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        {{ $errors->first() }}
-                    </div>
-                @endif
-                
-                <form method="POST" action="#" id="registerFormEl">
-                    @csrf
-                    <div class="input-group">
-                        <label for="register-name">Nama Lengkap</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                            <input type="text" id="register-name" name="name" placeholder="John Doe" required value="{{ old('name') }}" autocomplete="name">
-                        </div>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="register-email">Email</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
-                            </svg>
-                            <input type="email" id="register-email" name="email" placeholder="nama@email.com" required value="{{ old('email') }}" autocomplete="email">
-                        </div>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="register-password">Password</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                            </svg>
-                            <input type="password" id="register-password" name="password" placeholder="••••••••" required oninput="checkPasswordStrength()" autocomplete="new-password">
-                            <svg class="password-toggle" id="toggleRegisterPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24" onclick="togglePassword('register-password', this)">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                            </svg>
-                        </div>
-                        <div class="password-strength">
-                            <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
-                            <p class="strength-text" id="strengthText"></p>
-                        </div>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="register-password-confirm">Konfirmasi Password</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                            </svg>
-                            <input type="password" id="register-password-confirm" name="password_confirmation" placeholder="••••••••" required autocomplete="new-password">
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn-submit" id="registerBtn">
-                        <span id="registerBtnText">Daftar Sekarang</span>
-                        <span id="registerBtnLoading" style="display:none;">Memproses...</span>
-                    </button>
-                    
-                    <p class="terms-text">
-                        Dengan mendaftar, Anda menyetujui <a href="#">Syarat & Ketentuan</a> serta <a href="#">Kebijakan Privasi</a> VexaMart.
-                    </p>
-                </form>
-                
-                <div class="divider"><span>atau daftar dengan</span></div>
-                
-                <div class="social-login">
-                    <a href="#" class="social-btn" title="Google" onclick="return false;">
-                        <svg viewBox="0 0 24 24">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                        </svg>
-                    </a>
-                    <a href="#" class="social-btn" title="GitHub" onclick="return false;">
-                        <svg viewBox="0 0 24 24" fill="#171717">
-                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                        </svg>
-                    </a>
-                </div>
+            <div class="register-link">
+                Belum punya akun? <a href="{{ route('register') }}">Daftar sekarang</a>
             </div>
         </div>
     </div>
     
     <script>
-        // Toggle between Login and Register
-        function toggleAuth() {
-            const panel = document.getElementById('authPanel');
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-            const panelTitle = document.getElementById('panelTitle');
-            const panelText = document.getElementById('panelText');
-            const toggleBtn = document.getElementById('toggleBtn');
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.querySelector('.password-toggle');
             
-            if (loginForm.classList.contains('hidden')) {
-                // Show Login
-                panel.classList.remove('register');
-                panel.classList.add('login');
-                loginForm.classList.remove('hidden');
-                registerForm.classList.remove('visible');
-                panelTitle.textContent = 'Selamat Datang di VexaMart';
-                panelText.textContent = 'Sistem Point of Sale Modern untuk Minimarket Anda - Cepat, Aman, dan Profesional';
-                toggleBtn.textContent = 'Buat Akun Baru';
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
             } else {
-                // Show Register
-                panel.classList.remove('login');
-                panel.classList.add('register');
-                loginForm.classList.add('hidden');
-                registerForm.classList.add('visible');
-                panelTitle.textContent = 'Halo, Selamat Datang!';
-                panelText.textContent = 'Bergabunglah dengan VexaMart dan kelola toko Anda dengan lebih efisien';
-                toggleBtn.textContent = 'Sudah Punya Akun?';
+                passwordInput.type = 'password';
+                toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
             }
         }
         
-        // Toggle Password Visibility
-        function togglePassword(inputId, icon) {
-            const input = document.getElementById(inputId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
-            } else {
-                input.type = 'password';
-                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
-            }
-        }
-        
-        // Password Strength Checker
-        function checkPasswordStrength() {
-            const password = document.getElementById('register-password').value;
-            const strengthFill = document.getElementById('strengthFill');
-            const strengthText = document.getElementById('strengthText');
-            
-            if (!password) {
-                strengthFill.className = 'strength-fill';
-                strengthText.className = 'strength-text';
-                strengthText.textContent = '';
-                return;
-            }
-            
-            let strength = 0;
-            if (password.length >= 8) strength++;
-            if (password.match(/[a-z]+/)) strength++;
-            if (password.match(/[A-Z]+/)) strength++;
-            if (password.match(/[0-9]+/)) strength++;
-            if (password.match(/[^a-zA-Z0-9]+/)) strength++;
-            
-            strengthFill.className = 'strength-fill';
-            strengthText.className = 'strength-text';
-            
-            if (strength <= 1) {
-                strengthFill.classList.add('weak');
-                strengthText.textContent = 'Lemah - Tambahkan karakter';
-                strengthText.classList.add('weak');
-            } else if (strength === 2) {
-                strengthFill.classList.add('fair');
-                strengthText.textContent = 'Cukup - Tambahkan angka/simbol';
-                strengthText.classList.add('fair');
-            } else if (strength === 3 || strength === 4) {
-                strengthFill.classList.add('good');
-                strengthText.textContent = 'Bagus - Password cukup kuat';
-                strengthText.classList.add('good');
-            } else if (strength === 5) {
-                strengthFill.classList.add('strong');
-                strengthText.textContent = 'Sangat Kuat! ✓';
-                strengthText.classList.add('strong');
-            }
-        }
-        
-        // Form Loading State
-        document.getElementById('loginFormEl')?.addEventListener('submit', function(e) {
-            const btn = document.getElementById('loginBtn');
-            const btnText = document.getElementById('loginBtnText');
-            const btnLoading = document.getElementById('loginBtnLoading');
+        document.getElementById('loginForm')?.addEventListener('submit', function(e) {
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoading = document.getElementById('btnLoading');
             
             btn.disabled = true;
             btnText.style.display = 'none';
             btnLoading.style.display = 'inline';
-        });
-        
-        document.getElementById('registerFormEl')?.addEventListener('submit', function(e) {
-            const btn = document.getElementById('registerBtn');
-            const btnText = document.getElementById('registerBtnText');
-            const btnLoading = document.getElementById('registerBtnLoading');
-            
-            btn.disabled = true;
-            btnText.style.display = 'none';
-            btnLoading.style.display = 'inline';
-        });
-        
-        // Initialize Lucide Icons if available
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
         });
     </script>
 </body>
