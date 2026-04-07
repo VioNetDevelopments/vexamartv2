@@ -1,247 +1,105 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\DashboardController;
-
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\ActivityLogController;
-
-use App\Http\Controllers\Admin\TransactionController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\SettingController;
-use App\Http\Controllers\StockController;
-use Illuminate\Support\Facades\Auth;
-
 use App\Http\Controllers\PosController;
-
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\StockController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\Admin\TransactionController;
+use App\Http\Controllers\ActivityLogController;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth; // ← TAMBAHKAN INI
 
 /*
 |--------------------------------------------------------------------------
-| PUBLIC ROUTES
+| Public Routes
 |--------------------------------------------------------------------------
 */
-
 Route::middleware('guest')->group(function () {
-
-    Route::get('/login', [LoginController::class, 'showLoginForm'])
-        ->name('login');
-
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
-
 });
 
-
 /*
 |--------------------------------------------------------------------------
-| PROTECTED ROUTES
+| Protected Routes
 |--------------------------------------------------------------------------
 */
-
 Route::middleware(['auth', 'active'])->group(function () {
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    Route::post('/logout', [LoginController::class, 'logout'])
-        ->name('logout');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN ROUTES
-    |--------------------------------------------------------------------------
-    */
-
-    Route::middleware('role:owner,admin')
-        ->prefix('admin')
-        ->name('admin.')
-        ->group(function () {
-
-            /*
-            | Dashboard
-            */
-            Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])
-                ->name('dashboard');
-
-            /*
-            | Activity Logs
-            */
-            Route::get('/activity-logs', [ActivityLogController::class, 'index'])
-                ->name('activity-logs');
-
-            /*
-            | Products
-            */
-            Route::resource('products', ProductController::class);
-
-            Route::post('products/{product}/toggle-status',
-                [ProductController::class, 'toggleStatus'])
-                ->name('products.toggle-status');
-
-            /*
-            | Categories
-            */
-            Route::resource('categories', CategoryController::class)
-                ->except(['create', 'show', 'edit']);
-
-            /*
-            | Customers
-            */
-            Route::resource('customers', CustomerController::class);
-
-            Route::post('customers/{customer}/add-points',
-                [CustomerController::class, 'addPoints'])
-                ->name('customers.add-points');
-
-            /*
-            | Transactions
-            */
-            Route::get('transactions',
-                [TransactionController::class, 'index'])
-                ->name('transactions.index');
-
-            Route::get('transactions/{transaction}',
-                [TransactionController::class, 'show'])
-                ->name('transactions.show');
-
-            Route::get('transactions/{transaction}/print',
-                [TransactionController::class, 'print'])
-                ->name('transactions.print');
-
-            /*
-            | Reports
-            */
-            Route::get('reports',
-                [ReportController::class, 'index'])
-                ->name('reports.index');
-
-            Route::get('reports/export/excel',
-                [ReportController::class, 'exportExcel'])
-                ->name('reports.export.excel');
-
-            Route::get('reports/export/pdf',
-                [ReportController::class, 'exportPdf'])
-                ->name('reports.export.pdf');
-
-            /*
-            | Stock Management
-            */
-            Route::get('stock',
-                [StockController::class, 'index'])
-                ->name('stock.index');
-
-            Route::get('stock/history',
-                [StockController::class, 'history'])
-                ->name('stock.history');
-
-            Route::get('stock/history/{product}',
-                [StockController::class, 'history'])
-                ->name('stock.history.product');
-
-            Route::get('stock/stock-in',
-                [StockController::class, 'stockIn'])
-                ->name('stock.stock-in');
-
-            Route::post('stock/stock-in',
-                [StockController::class, 'processStockIn'])
-                ->name('stock.stock-in.process');
-
-            Route::get('stock/{product}/adjust',
-                [StockController::class, 'adjust'])
-                ->name('stock.adjust');
-
-            Route::post('stock/{product}/adjust',
-                [StockController::class, 'processAdjustment'])
-                ->name('stock.adjust.process');
-
-            /*
-            | Settings
-            */
-            Route::get('settings',
-                [SettingController::class, 'index'])
-                ->name('settings.index');
-
-            Route::post('settings',
-                [SettingController::class, 'update'])
-                ->name('settings.update');
-
-            Route::get('settings/backup',
-                [SettingController::class, 'backup'])
-                ->name('settings.backup');
-
+    // Admin Routes
+    Route::middleware('role:owner,admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard');
+        Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs');
+        Route::get('/verification', fn() => view('admin.verification'))->name('verification');
+        
+        // Products
+        Route::resource('products', ProductController::class);
+        Route::post('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
+        
+        // Categories
+        Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
+        
+        // Reports
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/', [ReportController::class, 'index'])->name('index');
+            Route::get('/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');
+            Route::get('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
         });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CASHIER ROUTES
-    |--------------------------------------------------------------------------
-    */
-
-    Route::middleware('role:cashier,admin,owner')
-        ->prefix('cashier')
-        ->name('cashier.')
-        ->group(function () {
-
-            Route::get('/dashboard',
-                [DashboardController::class, 'cashierDashboard'])
-                ->name('dashboard');
-
-            /*
-            | POS
-            */
-            Route::get('/pos',
-                [PosController::class, 'index'])
-                ->name('pos');
-
-            Route::get('/products',
-                [PosController::class, 'getProducts'])
-                ->name('products.search');
-
-            Route::get('/products/by-barcode',
-                [PosController::class, 'scanBarcode'])
-                ->name('products.by-barcode');
-
-            /*
-            | TRANSACTIONS
-            */
-            Route::post('/transaction',
-                [PosController::class, 'processTransaction'])
-                ->name('transaction.store');
-
-            Route::get('/transaction/{id}',
-                [PosController::class, 'getTransaction'])
-                ->name('transaction.show');
-
-            /*
-            | QRIS PAYMENT
-            */
-            Route::post('/qris/generate',
-                [PosController::class, 'generateQris'])
-                ->name('qris.generate');
-
-            Route::get('/qris/status/{invoice}',
-                [PosController::class, 'checkQrisStatus'])
-                ->name('qris.status');
-
+        
+        // Stock Management
+        Route::prefix('stock')->name('stock.')->group(function () {
+            Route::get('/', [StockController::class, 'index'])->name('index');
+            Route::get('/{product}/adjust', [StockController::class, 'adjust'])->name('adjust');
+            Route::post('/{product}/adjust', [StockController::class, 'processAdjustment'])->name('adjust.process');
+            Route::get('/stock-in', [StockController::class, 'stockIn'])->name('stock-in');
+            Route::post('/stock-in', [StockController::class, 'processStockIn'])->name('stock-in.process');
+            Route::get('/history', [StockController::class, 'history'])->name('history');
+            Route::get('/history/{product}', [StockController::class, 'history'])->name('history.product');
+            Route::get('/api/low-stock', [StockController::class, 'getLowStock'])->name('api.low-stock');
         });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DEFAULT REDIRECT
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('/', function () {
-
-        if (Auth::user()->role === 'cashier') {
-    return redirect()->route('cashier.pos');
-}
-
-        return redirect()->route('admin.dashboard');
-
+        
+        // Customers
+        Route::resource('customers', CustomerController::class);
+        Route::post('customers/{customer}/add-points', [CustomerController::class, 'addPoints'])->name('customers.add-points');
+        
+        // Transactions
+        Route::prefix('transactions')->name('transactions.')->group(function () {
+            Route::get('/', [TransactionController::class, 'index'])->name('index');
+            Route::get('/{transaction}', [TransactionController::class, 'show'])->name('show');
+            Route::get('/{transaction}/print', [TransactionController::class, 'print'])->name('print');
+        });
+        
+        // Settings
+        Route::prefix('settings')->name('settings.')->group(function () {
+            Route::get('/', [SettingController::class, 'index'])->name('index');
+            Route::post('/', [SettingController::class, 'update'])->name('update');
+            Route::get('/backup', [SettingController::class, 'backup'])->name('backup');
+        });
     });
 
+    // Cashier Routes
+    Route::middleware('role:cashier,admin,owner')->prefix('cashier')->name('cashier.')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'cashierDashboard'])->name('dashboard');
+        Route::get('/pos', [PosController::class, 'index'])->name('pos');
+        Route::get('/products', [PosController::class, 'getProducts'])->name('products.search');
+        Route::get('/products/by-barcode', [PosController::class, 'scanBarcode'])->name('products.by-barcode');
+        Route::post('/transaction', [PosController::class, 'processTransaction'])->name('transaction.store');
+        Route::get('/transaction/{id}', [PosController::class, 'getTransaction'])->name('transaction.show');
+    });
+
+    // Default redirect
+    Route::get('/', function() {
+        if (Auth::check()) { // ← Gunakan Auth::check() bukan auth()->check()
+            return Auth::user()->role === 'cashier' 
+                ? redirect()->route('cashier.pos')
+                : redirect()->route('admin.dashboard');
+        }
+        return redirect()->route('login');
+    });
 });
