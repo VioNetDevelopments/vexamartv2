@@ -6,72 +6,123 @@
 
             <!-- LEFT: Product Grid -->
             <div class="flex-1 flex flex-col overflow-hidden">
-                <!-- Search & Filter Bar -->
-                <div class="rounded-2xl bg-white p-4 shadow-soft dark:bg-navy-900 dark:border dark:border-white/5 mb-4">
-                    <div class="flex flex-wrap gap-3">
+                <!-- Search & Filters -->
+                <div class="relative z-30 bg-white/80 dark:bg-navy-900/80 backdrop-blur-xl border border-white/20 dark:border-white/5 rounded-2xl p-4 shadow-xl shadow-slate-200/50 dark:shadow-black/20 mb-4 animate-fade-in-down">
+                    <div class="flex flex-wrap gap-4 items-end">
                         <!-- Search Input -->
-                        <div class="flex-1 min-w-64">
-                            <div class="relative">
-                                <i data-lucide="search"
-                                    class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400"></i>
+                        <div class="flex-1 min-w-[300px]">
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">Cari Produk</label>
+                            <div class="relative group">
+                                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-accent-500 transition-colors"></i>
                                 <input type="text" x-model="search" @input.debounce.300ms="searchProducts()"
-                                    placeholder="Cari produk atau scan barcode..."
-                                    class="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-3 text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500 dark:border-white/10 dark:bg-navy-800 dark:text-white"
+                                    placeholder="Nama, SKU, atau scan barcode..."
+                                    class="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-12 pr-12 py-3 text-sm font-medium focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all shadow-inner"
                                     @keydown.enter="scanBarcode()">
-                                <i data-lucide="scan-barcode"
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 cursor-pointer hover:text-accent-500"
-                                    @click="$refs.barcodeInput.focus()"></i>
+                                <button @click="$refs.barcodeInput.focus()" class="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-white dark:hover:bg-navy-700 text-slate-400 hover:text-accent-500 transition-all">
+                                    <i data-lucide="scan-barcode" class="h-5 w-5"></i>
+                                </button>
                             </div>
                             <input type="text" x-ref="barcodeInput" class="hidden" @input.debounce.300ms="scanBarcode()">
                         </div>
 
                         <!-- Category Filter -->
-                        <select x-model="categoryId" @change="searchProducts()"
-                            class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500 dark:border-white/10 dark:bg-navy-800 dark:text-white">
-                            <option value="">Semua Kategori</option>
-                            @foreach($categories as $cat)
-                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                            @endforeach
-                        </select>
+                        <div x-data="{ 
+                            open: false, 
+                            selectedLabel: 'Semua Kategori'
+                        }" class="relative w-full md:w-56">
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">Kategori</label>
+                            <button type="button" @click="open = !open" @click.away="open = false"
+                                    class="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-bold transition-all hover:bg-white focus:border-accent-500 dark:border-white/10 dark:bg-navy-800 dark:text-white">
+                                <span x-text="selectedLabel"></span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300" :class="{'rotate-180': open}"></i>
+                            </button>
+                            <div x-show="open" x-transition class="absolute z-50 mt-2 w-full rounded-2xl bg-white/95 dark:bg-navy-900/95 p-2 shadow-2xl backdrop-blur-xl border border-white/20 dark:border-white/5">
+                                <div class="max-h-60 overflow-y-auto custom-scrollbar">
+                                    <button @click="categoryId = ''; selectedLabel = 'Semua Kategori'; open = false; searchProducts()"
+                                            class="w-full text-left px-4 py-2.5 text-sm rounded-xl transition-all"
+                                            :class="categoryId === '' ? 'bg-accent-500 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'">
+                                        Semua Kategori
+                                    </button>
+                                    @foreach($categories as $cat)
+                                        <button @click="categoryId = '{{ $cat->id }}'; selectedLabel = '{{ $cat->name }}'; open = false; searchProducts()"
+                                                class="w-full text-left px-4 py-2.5 text-sm rounded-xl transition-all"
+                                                :class="categoryId === '{{ $cat->id }}' ? 'bg-accent-500 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'">
+                                            {{ $cat->name }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
 
-                        <!-- Customer Select -->
-                        <select x-model="customerId"
-                            class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500 dark:border-white/10 dark:bg-navy-800 dark:text-white">
-                            <option value="">Pelanggan Umum</option>
-                            @foreach($customers as $cust)
-                                <option value="{{ $cust->id }}">{{ $cust->name }}</option>
-                            @endforeach
-                        </select>
+                        <!-- Customer Filter -->
+                        <div x-data="{ 
+                            open: false, 
+                            selectedLabel: 'Pelanggan Umum'
+                        }" class="relative w-full md:w-64">
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">Pelanggan</label>
+                            <button type="button" @click="open = !open" @click.away="open = false"
+                                    class="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-bold transition-all hover:bg-white focus:border-accent-500 dark:border-white/10 dark:bg-navy-800 dark:text-white">
+                                <span x-text="selectedLabel"></span>
+                                <i data-lucide="user" class="w-4 h-4 text-slate-400"></i>
+                            </button>
+                            <div x-show="open" x-transition class="absolute z-50 mt-2 w-full rounded-2xl bg-white/95 dark:bg-navy-900/95 p-2 shadow-2xl backdrop-blur-xl border border-white/20 dark:border-white/5">
+                                <div class="max-h-60 overflow-y-auto custom-scrollbar">
+                                    <button @click="customerId = ''; selectedLabel = 'Pelanggan Umum'; open = false"
+                                            class="w-full text-left px-4 py-2.5 text-sm rounded-xl transition-all"
+                                            :class="customerId === '' ? 'bg-accent-500 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'">
+                                        Pelanggan Umum
+                                    </button>
+                                    @foreach($customers as $cust)
+                                        <button @click="customerId = '{{ $cust->id }}'; selectedLabel = '{{ $cust->name }}'; open = false"
+                                                class="w-full text-left px-4 py-2.5 text-sm rounded-xl transition-all"
+                                                :class="customerId === '{{ $cust->id }}' ? 'bg-accent-500 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'">
+                                            {{ $cust->name }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Products Grid -->
-                <div
-                    class="flex-1 overflow-y-auto rounded-2xl bg-white p-4 shadow-soft dark:bg-navy-900 dark:border dark:border-white/5">
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div class="flex-1 overflow-y-auto rounded-3xl bg-white/50 dark:bg-navy-950/50 backdrop-blur-xl border border-slate-200/50 dark:border-white/5 p-4 shadow-xl shadow-slate-200/20 dark:shadow-black/40 custom-scrollbar animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
                         <template x-for="product in products" :key="product.id">
                             <div @click="addToCart(product)"
-                                class="group cursor-pointer rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-lg hover:border-accent-500 transition-all duration-200 dark:bg-navy-800 dark:border-white/10">
-                                <div class="aspect-square rounded-lg bg-slate-100 dark:bg-navy-700 overflow-hidden mb-3">
+                                class="group relative flex flex-col cursor-pointer rounded-2xl bg-white dark:bg-navy-900 p-3 shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 dark:border-white/5">
+                                
+                                <!-- Product Image Container -->
+                                <div class="relative aspect-[4/3] rounded-xl bg-slate-100 dark:bg-navy-800 overflow-hidden mb-4 shadow-inner">
                                     <template x-if="product.image">
                                         <img :src="'/storage/' + product.image" :alt="product.name"
-                                            class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                     </template>
                                     <template x-if="!product.image">
                                         <div class="w-full h-full flex items-center justify-center">
-                                            <i data-lucide="package" class="h-8 w-8 text-slate-400"></i>
+                                            <i data-lucide="package" class="h-10 w-10 text-slate-200 dark:text-navy-700"></i>
                                         </div>
                                     </template>
+                                    
+                                    <!-- Stock Badge -->
+                                    <div class="absolute top-2 right-2">
+                                        <span class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider backdrop-blur-md"
+                                            :class="product.stock <= product.min_stock ? 'bg-danger/20 text-danger border border-danger/20' : 'bg-success/20 text-success border border-success/20'"
+                                            x-text="product.stock + ' STOK'"></span>
+                                    </div>
                                 </div>
-                                <h4 class="font-medium text-sm text-navy-900 dark:text-white line-clamp-2"
-                                    x-text="product.name"></h4>
-                                <p class="text-xs text-slate-500 mt-1" x-text="product.category?.name"></p>
-                                <div class="flex items-center justify-between mt-2">
-                                    <span class="text-lg font-bold text-accent-500"
-                                        x-text="formatRupiah(product.sell_price)"></span>
-                                    <span class="text-xs px-2 py-1 rounded-full"
-                                        :class="product.stock <= product.min_stock ? 'bg-warning/10 text-warning' : 'bg-success/10 text-success'"
-                                        x-text="product.stock + ' stok'"></span>
+
+                                <!-- Product Info -->
+                                <div class="flex-1">
+                                    <p class="text-[10px] font-bold text-accent-500 uppercase tracking-widest mb-1" x-text="product.category?.name || 'UMUM'"></p>
+                                    <h4 class="font-bold text-sm text-navy-900 dark:text-white line-clamp-2 leading-tight mb-2 h-9" x-text="product.name"></h4>
+                                    
+                                    <div class="flex items-center justify-between mt-auto pt-2 border-t border-slate-50 dark:border-white/5">
+                                        <span class="text-base font-black text-navy-900 dark:text-white" x-text="formatRupiah(product.sell_price)"></span>
+                                        <div class="bg-accent-500 h-8 w-8 rounded-lg flex items-center justify-center text-white shadow-lg shadow-accent-500/30 group-hover:scale-110 transition-transform">
+                                            <i data-lucide="plus" class="h-4 w-4"></i>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </template>
@@ -85,56 +136,70 @@
                 </div>
             </div>
 
-            <!-- RIGHT: Cart -->
-            <div class="w-96 flex flex-col overflow-hidden">
-                <div
-                    class="rounded-2xl bg-white shadow-soft dark:bg-navy-900 dark:border dark:border-white/5 h-full flex flex-col">
-                    <!-- Cart Header -->
-                    <div class="p-4 border-b border-slate-100 dark:border-white/5">
-                        <h2 class="text-lg font-bold text-navy-900 dark:text-white flex items-center gap-2">
-                            <i data-lucide="shopping-cart" class="h-5 w-5"></i>
-                            Keranjang Belanja
-                        </h2>
-                        <p class="text-xs text-slate-500 mt-1" x-text="cart.length + ' item'"></p>
-                    </div>
-
-                    <!-- Cart Items -->
-                    <div class="flex-1 overflow-y-auto p-4 space-y-3">
-                        <template x-for="(item, index) in cart" :key="item.product_id">
-                            <div class="flex gap-3 p-3 rounded-xl bg-slate-50 dark:bg-navy-800">
-                                <div
-                                    class="h-16 w-16 rounded-lg bg-slate-200 dark:bg-navy-700 overflow-hidden flex-shrink-0">
-                                    <template x-if="item.image">
-                                        <img :src="'/storage/' + item.image" class="w-full h-full object-cover">
-                                    </template>
-                                    <template x-if="!item.image">
-                                        <div class="w-full h-full flex items-center justify-center">
-                                            <i data-lucide="package" class="h-6 w-6 text-slate-400"></i>
-                                        </div>
-                                    </template>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <h4 class="text-sm font-medium text-navy-900 dark:text-white line-clamp-1"
-                                        x-text="item.name"></h4>
-                                    <p class="text-xs text-accent-500 font-bold" x-text="formatRupiah(item.price)"></p>
-                                    <div class="flex items-center gap-2 mt-2">
-                                        <button @click="decreaseQty(index)"
-                                            class="h-7 w-7 rounded-lg bg-white dark:bg-navy-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-accent-500 hover:text-white transition-colors">
-                                            <i data-lucide="minus" class="h-3 w-3"></i>
-                                        </button>
-                                        <span class="text-sm font-medium w-8 text-center" x-text="item.qty"></span>
-                                        <button @click="increaseQty(index)"
-                                            class="h-7 w-7 rounded-lg bg-white dark:bg-navy-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-accent-500 hover:text-white transition-colors">
-                                            <i data-lucide="plus" class="h-3 w-3"></i>
-                                        </button>
-                                        <button @click="removeFromCart(index)"
-                                            class="ml-auto text-slate-400 hover:text-danger transition-colors">
-                                            <i data-lucide="trash-2" class="h-4 w-4"></i>
-                                        </button>
+                <!-- RIGHT: Cart Sidebar -->
+                <div class="w-[420px] flex flex-col animate-fade-in-right">
+                    <div class="h-full flex flex-col bg-white dark:bg-navy-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-white/5 overflow-hidden">
+                        
+                        <!-- Cart Header -->
+                        <div class="p-5 bg-gradient-to-r from-navy-900 to-navy-800 dark:from-navy-950 dark:to-navy-900 text-white">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="p-2.5 rounded-xl bg-white/10 backdrop-blur-md">
+                                        <i data-lucide="shopping-cart" class="h-6 w-6"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-lg font-black tracking-tight">KASIR POS</h2>
+                                        <p class="text-xs text-slate-400" x-text="cart.length + ' Item ditambahkan'"></p>
                                     </div>
                                 </div>
+                                <button @click="newTransaction()" class="p-2 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                                    <i data-lucide="rotate-ccw" class="h-5 w-5"></i>
+                                </button>
                             </div>
-                        </template>
+                        </div>
+
+                        <!-- Cart Items -->
+                        <div class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                            <template x-for="(item, index) in cart" :key="item.product_id">
+                                <div class="flex gap-4 p-3.5 rounded-2xl bg-slate-50 dark:bg-navy-800/50 border border-transparent hover:border-accent-500/30 hover:bg-white dark:hover:bg-navy-800 transition-all group">
+                                    <!-- Item Image -->
+                                    <div class="h-20 w-20 rounded-xl bg-white dark:bg-navy-700 overflow-hidden flex-shrink-0 shadow-sm">
+                                        <template x-if="item.image">
+                                            <img :src="'/storage/' + item.image" class="w-full h-full object-cover">
+                                        </template>
+                                        <template x-if="!item.image">
+                                            <div class="w-full h-full flex items-center justify-center text-slate-300">
+                                                <i data-lucide="package" class="h-8 w-8"></i>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <!-- Item Info -->
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex justify-between items-start mb-1">
+                                            <h4 class="text-sm font-bold text-navy-900 dark:text-white line-clamp-1 group-hover:text-accent-500 transition-colors" x-text="item.name"></h4>
+                                            <button @click="removeFromCart(index)" class="text-slate-300 hover:text-danger p-1 transition-colors">
+                                                <i data-lucide="x-circle" class="h-4 w-4"></i>
+                                            </button>
+                                        </div>
+                                        <p class="text-xs font-black text-accent-500 mb-3" x-text="formatRupiah(item.price)"></p>
+                                        
+                                        <!-- Quantity Controls -->
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-1 bg-white dark:bg-navy-900 rounded-lg border border-slate-200 dark:border-white/5 p-1">
+                                                <button @click="decreaseQty(index)" class="h-7 w-7 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 flex items-center justify-center text-slate-500 transition-colors">
+                                                    <i data-lucide="minus" class="h-3 w-3"></i>
+                                                </button>
+                                                <span class="text-sm font-bold w-10 text-center" x-text="item.qty"></span>
+                                                <button @click="increaseQty(index)" class="h-7 w-7 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 flex items-center justify-center text-slate-500 transition-colors">
+                                                    <i data-lucide="plus" class="h-3 w-3"></i>
+                                                </button>
+                                            </div>
+                                            <p class="text-sm font-black text-navy-900 dark:text-white" x-text="formatRupiah(item.price * item.qty)"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
 
                         <!-- Empty Cart -->
                         <div x-show="cart.length === 0" class="flex flex-col items-center justify-center h-full">
@@ -144,129 +209,76 @@
                         </div>
                     </div>
 
-                    <!-- Cart Summary -->
-                    <div class="p-4 border-t border-slate-100 dark:border-white/5 space-y-3">
-                        <!-- Discount -->
-                        <div class="flex items-center gap-2">
-                            <input type="number" x-model="discount" placeholder="Diskon (Rp)"
-                                class="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-navy-800 dark:text-white">
-                            <button @click="discount = 0" class="text-xs text-slate-500 hover:text-danger">Reset</button>
-                        </div>
-
-                        <!-- Summary Rows -->
-                        <div class="space-y-2 text-sm">
-                            <div class="flex justify-between text-slate-500">
-                                <span>Subtotal</span>
-                                <span x-text="formatRupiah(subtotal)"></span>
-                            </div>
-                            <div class="flex justify-between text-slate-500">
-                                <span>Diskon</span>
-                                <span class="text-danger" x-text="'- ' + formatRupiah(discount)"></span>
-                            </div>
-                            <div class="flex justify-between text-slate-500">
-                                <span>Pajak (<span x-text="taxRate"></span>%)</span>
-                                <span x-text="formatRupiah(tax)"></span>
-                            </div>
-                            <div
-                                class="flex justify-between text-lg font-bold text-navy-900 dark:text-white pt-2 border-t border-slate-100 dark:border-white/5">
-                                <span>Total</span>
-                                <span x-text="formatRupiah(grandTotal)"></span>
-                            </div>
-                        </div>
-
-                        <!-- Payment Method -->
-                        <div>
-                            <label class="block text-xs font-medium text-slate-500 mb-2">Metode Pembayaran</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button @click="selectPayment('cash')"
-                                    :class="paymentMethod === 'cash' ? 'bg-accent-500 text-white' : 'bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300'"
-                                    class="rounded-lg py-2 text-sm font-medium transition-colors">
-                                    <i data-lucide="banknote" class="inline h-4 w-4 mr-1"></i> Tunai
-                                </button>
-                                <button @click="selectPayment('qris')"
-                                    :class="paymentMethod === 'qris' ? 'bg-accent-500 text-white' : 'bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300'"
-                                    class="rounded-lg py-2 text-sm font-medium transition-colors">
-                                    <i data-lucide="qr-code" class="inline h-4 w-4 mr-1"></i> QRIS
-                                </button>
-                                <button @click="selectPayment('debit')"
-                                    :class="paymentMethod === 'debit' ? 'bg-accent-500 text-white' : 'bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300'"
-                                    class="rounded-lg py-2 text-sm font-medium transition-colors">
-                                    <i data-lucide="credit-card" class="inline h-4 w-4 mr-1"></i> Debit
-                                </button>
-                                <button @click="selectPayment('ewallet')"
-                                    :class="paymentMethod === 'ewallet' ? 'bg-accent-500 text-white' : 'bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300'"
-                                    class="rounded-lg py-2 text-sm font-medium transition-colors">
-                                    <i data-lucide="wallet" class="inline h-4 w-4 mr-1"></i> E-Wallet
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- QRIS Payment Section -->
-                        <div x-show="paymentMethod === 'qris'" x-transition:enter="transition ease-out duration-300"
-                            x-transition:enter-start="opacity-0 -translate-y-2"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            class="p-4 rounded-xl bg-slate-50 dark:bg-navy-800 border border-slate-200 dark:border-white/10">
-                            <div class="text-center mb-3">
-                                <p class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Scan QRIS untuk Bayar
-                                </p>
-                                <p class="text-xs text-slate-500">Gunakan GoPay, OVO, DANA, ShopeePay, atau Mobile Banking
-                                </p>
+                        <!-- Pay Summary Section -->
+                        <div class="p-6 bg-slate-50 dark:bg-navy-950/50 border-t border-slate-100 dark:border-white/5 space-y-5">
+                            <!-- Discount Input -->
+                            <div class="relative group">
+                                <i data-lucide="ticket" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-accent-500"></i>
+                                <input type="number" x-model="discount" placeholder="Punya voucher diskon? (Rp)"
+                                    class="w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 py-2.5 text-sm dark:border-white/10 dark:bg-navy-800 dark:text-white focus:ring-4 focus:ring-accent-500/10 transition-all font-bold">
                             </div>
 
-                            <!-- QR Code Display -->
-                            <div class="bg-white p-3 rounded-lg inline-block mx-auto mb-3">
-                                <img :src="qrisQrCode" alt="QRIS Payment" class="w-40 h-40 mx-auto" x-show="!qrisLoading">
-                                <div x-show="qrisLoading" class="w-40 h-40 flex items-center justify-center">
-                                    <div
-                                        class="animate-spin rounded-full h-12 w-12 border-4 border-accent-500 border-t-transparent">
-                                    </div>
+                            <!-- Totals Table -->
+                            <div class="space-y-2.5">
+                                <div class="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                                    <span class="text-xs font-bold uppercase tracking-widest">Subtotal</span>
+                                    <span class="text-sm font-black" x-text="formatRupiah(subtotal)"></span>
+                                </div>
+                                <div class="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                                    <span class="text-xs font-bold uppercase tracking-widest">Pajak (<span x-text="taxRate"></span>%)</span>
+                                    <span class="text-sm font-black" x-text="formatRupiah(tax)"></span>
+                                </div>
+                                <div class="flex justify-between items-center text-danger" x-show="discount > 0">
+                                    <span class="text-xs font-bold uppercase tracking-widest">Diskon</span>
+                                    <span class="text-sm font-black" x-text="'- ' + formatRupiah(discount)"></span>
+                                </div>
+                                <div class="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-white/5">
+                                    <span class="text-sm font-black text-navy-900 dark:text-white uppercase tracking-tighter">TOTAL AKHIR</span>
+                                    <span class="text-2xl font-black text-accent-500" x-text="formatRupiah(grandTotal)"></span>
                                 </div>
                             </div>
 
-                            <!-- Payment Info -->
-                            <div class="text-center">
-                                <p class="text-xs text-slate-500 mb-2">Total Pembayaran:</p>
-                                <p class="text-lg font-bold text-accent-500" x-text="formatRupiah(grandTotal)"></p>
+                            <!-- Payment Options -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <template x-for="method in [{id:'cash', label:'TUNAI', icon:'banknote'}, {id:'qris', label:'QRIS', icon:'qr-code'}, {id:'debit', label:'DEBIT', icon:'credit-card'}, {id:'ewallet', label:'E-WALLET', icon:'wallet'}]">
+                                    <button @click="selectPayment(method.id)"
+                                        :class="paymentMethod === method.id ? 'bg-accent-500 text-white shadow-lg shadow-accent-500/30' : 'bg-white dark:bg-navy-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/5 hover:bg-slate-50 transition-all'"
+                                        class="flex items-center justify-center gap-2 rounded-xl py-3 text-[10px] font-black tracking-widest transition-all active:scale-95">
+                                        <i :data-lucide="method.icon" class="h-4 w-4"></i>
+                                        <span x-text="method.label"></span>
+                                    </button>
+                                </template>
                             </div>
 
-                            <!-- Payment Status -->
-                            <div class="mt-3 flex items-center justify-center gap-2">
-                                <div class="animate-pulse w-2 h-2 rounded-full bg-warning" x-show="qrisLoading"></div>
-                                <span class="text-xs text-slate-500"
-                                    x-text="qrisLoading ? 'Menunggu pembayaran...' : 'QR Code siap'"></span>
+                            <!-- Form Checkout Buttons -->
+                            <div class="space-y-3">
+                                <!-- Cash Input (If selected) -->
+                                <div x-show="paymentMethod === 'cash'" x-transition class="animate-fade-in-up">
+                                    <label class="block text-xs font-black text-slate-500 mb-2 uppercase tracking-widest">JUMLAH TUNAI</label>
+                                    <div class="relative group">
+                                        <span class="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400 group-focus-within:text-accent-500 transition-colors">Rp</span>
+                                        <input type="number" x-model="paidAmount"
+                                            class="w-full rounded-xl border-2 border-accent-500/20 bg-white pl-12 pr-4 py-4 text-xl font-black text-navy-900 dark:bg-navy-800 dark:text-white focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10 transition-all shadow-inner"
+                                            placeholder="0">
+                                    </div>
+                                    <div class="mt-3 p-3 rounded-xl bg-success/10 border border-success/20 flex justify-between items-center" x-show="paidAmount >= grandTotal && paidAmount > 0">
+                                        <span class="text-xs font-bold text-success uppercase">KEMBALIAN</span>
+                                        <span class="text-lg font-black text-success" x-text="formatRupiah(change)"></span>
+                                    </div>
+                                </div>
+
+                                <button @click="processTransaction()"
+                                    :disabled="cart.length === 0 || (paymentMethod === 'cash' && paidAmount < grandTotal)"
+                                    class="relative overflow-hidden w-full group rounded-2xl bg-accent-500 py-4 text-sm font-black text-white shadow-xl shadow-accent-500/30 hover:bg-accent-600 disabled:opacity-50 disabled:grayscale transition-all active:scale-95 uppercase tracking-widest">
+                                    <span class="relative z-10 flex items-center justify-center gap-2">
+                                        <i data-lucide="shopping-bag" class="h-5 w-5"></i>
+                                        <span x-text="paymentMethod === 'qris' ? 'GENERATE QRIS' : 'PROSES PEMBAYARAN'"></span>
+                                    </span>
+                                </button>
                             </div>
-
-                            <!-- Manual Confirm Button -->
-                            <button @click="confirmQrisPayment()" :disabled="qrisLoading"
-                                class="w-full mt-3 rounded-lg bg-success py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
-                                <i data-lucide="check-circle" class="inline h-4 w-4 mr-1"></i> Konfirmasi Pembayaran
-                            </button>
                         </div>
-
-                        <!-- Cash Payment Section -->
-                        <div x-show="paymentMethod === 'cash'" x-transition:enter="transition ease-out duration-300"
-                            x-transition:enter-start="opacity-0 -translate-y-2"
-                            x-transition:enter-end="opacity-100 translate-y-0">
-                            <label class="block text-xs font-medium text-slate-500 mb-1">Jumlah Bayar</label>
-                            <input type="number" x-model="paidAmount"
-                                class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-bold dark:border-white/10 dark:bg-navy-800 dark:text-white"
-                                placeholder="0">
-                            <p x-show="paidAmount >= grandTotal && paidAmount > 0" class="text-xs text-success mt-1">
-                                Kembalian: <span class="font-bold" x-text="formatRupiah(change)"></span>
-                            </p>
-                            <p x-show="paidAmount < grandTotal && paidAmount > 0" class="text-xs text-danger mt-1">
-                                Kurang: <span class="font-bold" x-text="formatRupiah(grandTotal - paidAmount)"></span>
-                            </p>
-                        </div>
-
-                        <!-- Checkout Button -->
-                        <button @click="processTransaction()"
-                            :disabled="cart.length === 0 || (paymentMethod === 'cash' && paidAmount < grandTotal) || (paymentMethod === 'qris' && qrisLoading)"
-                            class="w-full rounded-xl bg-accent-500 py-3 text-sm font-bold text-white shadow-lg shadow-accent-500/30 hover:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
-                            <i data-lucide="check-circle" class="inline h-4 w-4 mr-2"></i>
-                            <span x-text="paymentMethod === 'qris' ? 'Tampilkan QRIS' : 'Proses Pembayaran'"></span>
-                        </button>
                     </div>
+                </div>
                 </div>
             </div>
         </div>
