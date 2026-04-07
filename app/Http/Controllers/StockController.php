@@ -1,0 +1,201 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Product;
+use App\Models\StockMovement;
+use App\Models\Category;
+use App\Http\Requests\StockAdjustmentRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+
+class StockController extends Controller
+{
+    /**
+     * Display stock overview
+     */
+    public function index(Request $request)
+    {
+        $query = Product::with('category');
+
+        // Filter
+        if ($request->filled('category')) {
+            $query->where('category_id', $request->category);
+        }
+
+        if ($request->filled('stock_status')) {
+            if ($request->stock_status === 'low') {
+                $query->whereColumn('stock', '<=', 'min_stock');
+            } elseif ($request->stock_status === 'out') {
+                $query->where('stock', 0);
+            } elseif ($request->stock_status === 'available') {
+                $query->whereColumn('stock', '>', 'min_stock');
+            }
+        }
+
+        if ($request->filled('search')) {
+            $query->where('name', 'LIKE', "%{$request->search}%");
+        }
+
+        $products = $query->orderBy('name')->paginate(20);
+        $categories = Category::where('is_active', true)->get();
+        
+        // Stock summary
+        $summary = [
+            'total_products' => Product::count(),
+            'low_stock' => Product::whereColumn('stock', '<=', 'min_stock')->count(),
+            'out_of_stock' => Product::where('stock', 0)->count(),
+            'total_value' => Product::sum(DB::raw('stock * buy_price')),
+        ];
+
+        return view('admin.stock.index', compact('products', 'categories', 'summary'));
+    }
+
+    /**
+     * Show stock adjustment form
+     */
+    public function adjust(Product $product)
+    {
+        return view('admin.stock.adjust', compact('product'));
+    }
+
+    /**
+     * Process stock adjustment
+     */
+    public function processAdjustment(StockAdjustmentRequest $request, Product $product)
+    {
+        $validated = $request->validated();
+        
+        DB::beginTransaction();
+        
+        try {
+            $oldStock = $product->stock;
+            $newStock = $oldStock + $validated['quantity'];
+            
+            if ($newStock < 0) {
+                throw new \Exception('Stok tidak boleh negatif!');
+            }
+
+            // Update product stock
+            $product->update(['stock' => $newStock]);
+
+            // Create stock movement record
+            StockMovement::create([
+                'product_id' => $product->id,
+                'user_id' => Auth::id(),
+                'type' => 'adjustment',
+                'qty' => $validated['quantity'],
+                'reason' => $validated['reason'],
+                'stock_before' => $oldStock,
+                'stock_after' => $newStock,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('admin.stock.index')
+                ->with('success', 'Stok berhasil diupdate!');
+                
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Stock In (Restock)
+     */
+    public function stockIn()
+    {
+        $products = Product::where('is_active', true)->orderBy('name')->get();
+        return view('admin.stock.stock-in', compact('products'));
+    }
+
+    public function processStockIn(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'buy_price' => 'nullable|numeric|min:0',
+            'reason' => 'required|string|max:255',
+        ]);
+
+        DB::beginTransaction();
+        
+        try {
+            $product = Product::lockForUpdate()->find($validated['product_id']);
+            $oldStock = $product->stock;
+            $newStock = $oldStock + $validated['quantity'];
+
+            // Update price if provided
+            if ($validated['buy_price']) {
+                $product->update([
+                    'buy_price' => $validated['buy_price'],
+                    'stock' => $newStock
+                ]);
+            } else {
+                $product->increment('stock', $validated['quantity']);
+            }
+
+            StockMovement::create([
+                'product_id' => $product->id,
+                'user_id' => Auth::id(),
+                'type' => 'in',
+                'qty' => $validated['quantity'],
+                'reason' => $validated['reason'],
+                'stock_before' => $oldStock,
+                'stock_after' => $newStock,
+            ]);
+
+            DB::commit();
+            return redirect()->route('admin.stock.index')->with('success', 'Stok masuk berhasil dicatat!');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Stock History
+     */
+    public function history(Request $request, Product $product = null)
+    {
+        $query = StockMovement::with(['product', 'user']);
+
+        if ($product) {
+            $query->where('product_id', $product->id);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        $movements = $query->latest()->paginate(20);
+        $products = Product::where('is_active', true)->orderBy('name')->get();
+
+        return view('admin.stock.history', compact('movements', 'products', 'product'));
+    }
+
+    /**
+     * API: Get low stock products
+     */
+    public function getLowStock()
+    {
+        $products = Product::whereColumn('stock', '<=', 'min_stock')
+            ->where('is_active', true)
+            ->with('category')
+            ->orderBy('stock')
+            ->get();
+
+        return response()->json(['products' => $products]);
+    }
+}
