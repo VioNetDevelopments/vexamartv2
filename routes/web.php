@@ -12,8 +12,11 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\ActivityLogController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth; // ← TAMBAHKAN INI
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\SearchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +41,37 @@ Route::middleware(['auth', 'active'])->group(function () {
     // Admin Routes
     Route::middleware('role:owner,admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard');
+        Route::get('/search', [SearchController::class, 'globalSearch'])->name('search');
+        
+        // Route untuk chart data dinamis
+        Route::get('/dashboard/chart-data', function(Request $request) {
+            $period = $request->get('period', '7');
+            $days = (int)$period;
+            
+            $sales = DB::table('transactions')
+                ->selectRaw('DATE(created_at) as date, SUM(grand_total) as total')
+                ->where('created_at', '>=', now()->subDays($days))
+                ->where('payment_status', 'paid')
+                ->groupBy('date')
+                ->orderBy('date')
+                ->get();
+            
+            // Fill missing dates
+            $allDates = [];
+            for ($i = $days - 1; $i >= 0; $i--) {
+                $date = now()->subDays($i)->format('Y-m-d');
+                $allDates[$date] = 0;
+            }
+            
+            foreach ($sales as $sale) {
+                $allDates[$sale->date] = (float) $sale->total;
+            }
+            
+            return response()->json([
+                'labels' => collect($allDates)->keys()->map(fn($d) => \Carbon\Carbon::parse($d)->format('d M')),
+                'data' => array_values($allDates),
+            ]);
+        })->name('dashboard.chart-data');
         Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs');
         Route::get('/verification', fn() => view('admin.verification'))->name('verification');
         

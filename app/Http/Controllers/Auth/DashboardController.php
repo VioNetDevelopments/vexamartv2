@@ -24,24 +24,23 @@ class DashboardController extends Controller
 
         $recentTransactions = Transaction::with(['user', 'customer'])
             ->latest()
-            ->take(5)
+            ->take(20)
             ->get();
 
         $topProducts = DB::table('transaction_items')
             ->join('products', 'transaction_items.product_id', '=', 'products.id')
-            ->select('products.name', 'products.image', DB::raw('SUM(transaction_items.qty) as total_sold'))
+            ->select('products.name', 'products.image', 
+                     DB::raw('SUM(transaction_items.qty) as total_sold'),
+                     DB::raw('SUM(transaction_items.subtotal) as total_revenue'))
             ->groupBy('products.id', 'products.name', 'products.image')
             ->orderBy('total_sold', 'desc')
-            ->take(5)
+            ->take(20)
             ->get();
 
-        // FIX: Chart data untuk 7 hari terakhir
+        // Data untuk chart (7 hari terakhir)
         $salesData = $this->getSalesChartData(7);
         
-        // Payment method distribution
-        $paymentData = $this->getPaymentChartData();
-
-        return view('admin.dashboard', compact('stats', 'recentTransactions', 'topProducts', 'salesData', 'paymentData'));
+        return view('admin.dashboard', compact('stats', 'recentTransactions', 'topProducts', 'salesData'));
     }
 
     public function cashierDashboard()
@@ -56,16 +55,16 @@ class DashboardController extends Controller
         return view('cashier.dashboard', compact('stats'));
     }
 
-    private function getSalesChartData($days = 30)
+    private function getSalesChartData($days = 7)
     {
-        $sales = Transaction::selectRaw('DATE(created_at) as date, SUM(grand_total) as total, COUNT(*) as count')
+        $sales = Transaction::selectRaw('DATE(created_at) as date, SUM(grand_total) as total')
             ->where('created_at', '>=', now()->subDays($days))
             ->where('payment_status', 'paid')
             ->groupBy('date')
             ->orderBy('date')
             ->get();
 
-        // Fill missing dates with zero
+        // Fill missing dates
         $allDates = [];
         for ($i = $days - 1; $i >= 0; $i--) {
             $date = now()->subDays($i)->format('Y-m-d');
