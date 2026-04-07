@@ -40,7 +40,7 @@
             @endif
 
             <!-- Filters & Search -->
-            <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 animate-fade-in-up" style="animation-delay: 0.1s;">
+            <div class="relative z-30 bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 animate-fade-in-up" style="animation-delay: 0.1s;">
                 <form action="{{ route('admin.products.index') }}" method="GET" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <!-- Search -->
@@ -55,27 +55,114 @@
                         </div>
 
                         <!-- Category Filter -->
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Kategori</label>
-                            <select name="category" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white">
-                                <option value="">Semua Kategori</option>
-                                @foreach($categories as $cat)
-                                    <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>
-                                        {{ $cat->name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        <div x-data="{ 
+                            open: false, 
+                            selected: '{{ request('category') }}',
+                            selectedLabel: '{{ $categories->where('id', request('category'))->first()->name ?? 'Semua Kategori' }}'
+                        }" class="relative">
+                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Kategori</label>
+                            
+                            <!-- Hidden Input for Form -->
+                            <input type="hidden" name="category" :value="selected">
+                            
+                            <!-- Dropdown Trigger -->
+                            <button type="button" 
+                                    @click="open = !open" 
+                                    @click.away="open = false"
+                                    class="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium transition-all focus:border-accent-500 focus:ring-2 focus:ring-accent-500/10 dark:border-white/10 dark:bg-navy-800 dark:text-white group">
+                                <span x-text="selectedLabel"></span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300" :class="{'rotate-180': open}"></i>
+                            </button>
+
+                            <!-- Dropdown Menu -->
+                            <div x-show="open" 
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                                 x-transition:enter-end="opacity-100 scale-100 translate-y-1"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 scale-100 translate-y-1"
+                                 x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                                 class="absolute z-[60] mt-1 w-full min-w-[220px] rounded-2xl bg-white/95 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.2)] backdrop-blur-xl border border-white/20 dark:bg-navy-900/95 dark:border-white/5">
+                                
+                                <div class="max-h-60 overflow-y-auto custom-scrollbar">
+                                    <button type="button" 
+                                            @click="selected = ''; selectedLabel = 'Semua Kategori'; open = false; $nextTick(() => $el.closest('form').submit())"
+                                            class="w-full text-left px-4 py-2 text-sm rounded-xl transition-colors"
+                                            :class="selected == '' ? 'bg-accent-500 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'">
+                                        Semua Kategori
+                                    </button>
+                                    @foreach($categories as $cat)
+                                        <button type="button" 
+                                                @click="selected = '{{ $cat->id }}'; selectedLabel = '{{ $cat->name }}'; open = false; $nextTick(() => $el.closest('form').submit())"
+                                                class="w-full text-left px-4 py-2 text-sm rounded-xl transition-colors"
+                                                :class="selected == '{{ $cat->id }}' ? 'bg-accent-500 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'">
+                                            {{ $cat->name }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Stock Status -->
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Status Stok</label>
-                            <select name="stock_status" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white">
-                                <option value="">Semua</option>
-                                <option value="available" {{ request('stock_status') == 'available' ? 'selected' : '' }}>Stok Aman</option>
-                                <option value="low" {{ request('stock_status') == 'low' ? 'selected' : '' }}>Stok Menipis</option>
-                                <option value="out" {{ request('stock_status') == 'out' ? 'selected' : '' }}>Stok Habis</option>
-                            </select>
+                        <div x-data="{ 
+                            open: false, 
+                            selected: '{{ request('stock_status') }}',
+                            get selectedLabel() {
+                                switch(this.selected) {
+                                    case 'available': return 'Stok Aman';
+                                    case 'low': return 'Stok Menipis';
+                                    case 'out': return 'Stok Habis';
+                                    default: return 'Semua Status';
+                                }
+                            }
+                        }" class="relative">
+                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Status Stok</label>
+                            
+                            <!-- Hidden Input for Form -->
+                            <input type="hidden" name="stock_status" :value="selected">
+                            
+                            <!-- Dropdown Trigger -->
+                            <button type="button" 
+                                    @click="open = !open" 
+                                    @click.away="open = false"
+                                    class="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium transition-all focus:border-accent-500 focus:ring-2 focus:ring-accent-500/10 dark:border-white/10 dark:bg-navy-800 dark:text-white group">
+                                <span x-text="selectedLabel"></span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300" :class="{'rotate-180': open}"></i>
+                            </button>
+
+                            <!-- Dropdown Menu -->
+                            <div x-show="open" 
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                                 x-transition:enter-end="opacity-100 scale-100 translate-y-1"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 scale-100 translate-y-1"
+                                 x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                                 class="absolute z-[60] mt-1 w-full min-w-[220px] rounded-2xl bg-white/95 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.2)] backdrop-blur-xl border border-white/20 dark:bg-navy-900/95 dark:border-white/5">
+                                
+                                <div class="space-y-1">
+                                    <button type="button" @click="selected = ''; open = false; $nextTick(() => $el.closest('form').submit())"
+                                            class="w-full text-left px-4 py-2 text-sm rounded-xl transition-colors"
+                                            :class="selected == '' ? 'bg-accent-500 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'">
+                                        Semua Status
+                                    </button>
+                                    <button type="button" @click="selected = 'available'; open = false; $nextTick(() => $el.closest('form').submit())"
+                                            class="w-full text-left px-4 py-2 text-sm rounded-xl transition-colors"
+                                            :class="selected == 'available' ? 'bg-success text-white font-bold shadow-lg shadow-success/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'">
+                                        Stok Aman
+                                    </button>
+                                    <button type="button" @click="selected = 'low'; open = false; $nextTick(() => $el.closest('form').submit())"
+                                            class="w-full text-left px-4 py-2 text-sm rounded-xl transition-colors"
+                                            :class="selected == 'low' ? 'bg-warning text-white font-bold shadow-lg shadow-warning/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'">
+                                        Stok Menipis
+                                    </button>
+                                    <button type="button" @click="selected = 'out'; open = false; $nextTick(() => $el.closest('form').submit())"
+                                            class="w-full text-left px-4 py-2 text-sm rounded-xl transition-colors"
+                                            :class="selected == 'out' ? 'bg-danger text-white font-bold shadow-lg shadow-danger/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'">
+                                        Stok Habis
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -99,7 +186,7 @@
                 @forelse($products as $product)
                     <div class="group bg-white dark:bg-navy-900 rounded-2xl overflow-hidden shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl hover:shadow-accent-500/10 transition-all duration-500 hover:-translate-y-2 animate-fade-in-up" style="animation-delay: {{ 0.1 + $loop->index * 0.05 }}s;">
                         <!-- Product Image -->
-                        <div class="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-navy-800 dark:to-navy-700 overflow-hidden">
+                        <div class="relative h-40 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-navy-800 dark:to-navy-700 overflow-hidden">
                             @if($product->image)
                                 <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" 
                                      class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
@@ -147,33 +234,26 @@
                         </div>
 
                         <!-- Product Info -->
-                        <div class="p-5 space-y-3">
-                            <!-- Category -->
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400">
-                                {{ $product->category->name ?? 'Uncategorized' }}
-                            </span>
-
-                            <!-- Name -->
-                            <h3 class="font-semibold text-navy-900 dark:text-white line-clamp-2 min-h-[2.5rem]">
-                                {{ $product->name }}
-                            </h3>
-
-                            <!-- SKU & Barcode -->
-                            <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                                <span class="font-mono bg-slate-100 dark:bg-navy-800 px-2 py-1 rounded">{{ $product->sku }}</span>
+                        <div class="p-4 space-y-2.5">
+                            <!-- Name & Category -->
+                            <div class="space-y-1">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-navy-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    {{ $product->category->name ?? 'Uncategorized' }}
+                                </span>
+                                <h3 class="font-bold text-navy-900 dark:text-white line-clamp-1">
+                                    {{ $product->name }}
+                                </h3>
                             </div>
 
                             <!-- Price -->
-                            <div class="flex items-end justify-between">
+                            <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">Harga Jual</p>
-                                    <p class="text-lg font-bold text-accent-600 dark:text-accent-400">
+                                    <p class="text-lg font-black text-accent-600 dark:text-accent-400">
                                         Rp {{ number_format($product->sell_price, 0, ',', '.') }}
                                     </p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">Harga Beli</p>
-                                    <p class="text-sm font-medium text-slate-600 dark:text-slate-400 line-through">
+                                    <p class="text-xs font-medium text-slate-400 line-through">
                                         Rp {{ number_format($product->buy_price, 0, ',', '.') }}
                                     </p>
                                 </div>
@@ -181,29 +261,25 @@
 
                             <!-- Profit Badge -->
                             @if($product->sell_price > $product->buy_price)
-                                <div class="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-white/10">
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Profit:</span>
-                                    <span class="text-xs font-semibold text-success bg-success/10 px-2 py-1 rounded-full">
-                                        +Rp {{ number_format($product->sell_price - $product->buy_price, 0, ',', '.') }}
+                                <div class="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
+                                    <span class="text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">
+                                        +Rp {{ number_format($product->sell_price - $product->buy_price, 0, ',', '.') }} PROFIT
                                     </span>
                                 </div>
                             @endif
 
                             <!-- Action Buttons -->
-                            <div class="flex gap-2 pt-3">
+                            <div class="flex items-center gap-2 pt-4">
                                 <a href="{{ route('admin.products.edit', $product) }}" 
-                                   class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-accent-500 text-white rounded-xl text-sm font-medium hover:bg-accent-600 transition-colors">
-                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                   class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-accent-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-accent-500/20 hover:bg-accent-600 hover:shadow-accent-500/40 transition-all active:scale-95">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
                                     <span>Edit</span>
                                 </a>
-                                <form action="{{ route('admin.products.destroy', $product) }}" method="POST" class="flex-1" onsubmit="return confirm('Yakin ingin menghapus produk ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-danger hover:text-white hover:border-danger transition-colors">
-                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                        <span>Hapus</span>
-                                    </button>
-                                </form>
+                                <button type="button" 
+                                        @click="confirmDelete({{ $product->id }}, '{{ addslashes($product->name) }}')"
+                                        class="flex items-center justify-center h-[42px] px-4 border-2 border-slate-100 dark:border-white/5 text-slate-400 hover:text-danger hover:border-danger/20 hover:bg-danger/5 rounded-xl transition-all active:scale-95 group">
+                                    <i data-lucide="trash-2" class="w-5 h-5 group-hover:rotate-12 transition-transform"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -235,37 +311,71 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" x-data="{ open: false, productId: null, productName: '' }" 
+    <div id="deleteModal" 
+         x-data="{ 
+            open: false, 
+            productId: null, 
+            productName: '',
+            isDeleting: false
+         }" 
          x-show="open" 
          x-cloak
-         class="fixed inset-0 z-50 flex items-center justify-center p-4"
-         style="display: none;">
-        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="open = false"></div>
-        <div class="relative bg-white dark:bg-navy-900 rounded-2xl p-6 max-w-md w-full shadow-2xl"
+         x-on:open-delete-modal.window="open = true; productId = $event.detail.id; productName = $event.detail.name"
+         class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        
+        <!-- Backdrop -->
+        <div x-show="open"
              x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100">
-            <div class="text-center">
-                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-danger/10 mb-4">
-                    <i data-lucide="alert-triangle" class="h-7 w-7 text-danger"></i>
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-navy-950/40 backdrop-blur-md" 
+             @click="open = false"></div>
+        
+        <!-- Modal Content -->
+        <div x-show="open"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-90 translate-y-4"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+             x-transition:leave-end="opacity-0 scale-90 translate-y-4"
+             class="relative bg-white dark:bg-navy-900 rounded-[2.5rem] p-8 max-w-md w-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 overflow-hidden">
+            
+            <!-- Background Decorative Shape -->
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-danger/5 rounded-full blur-3xl"></div>
+            
+            <div class="relative text-center">
+                <!-- Icon with Pulse -->
+                <div class="relative mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-danger/10 mb-6">
+                    <div class="absolute inset-0 rounded-3xl bg-danger/10 animate-ping"></div>
+                    <i data-lucide="trash-2" class="relative h-10 w-10 text-danger"></i>
                 </div>
-                <h3 class="text-lg font-bold text-navy-900 dark:text-white mb-2">Hapus Produk?</h3>
-                <p class="text-slate-500 dark:text-slate-400 mb-6">
-                    Apakah Anda yakin ingin menghapus <strong class="text-navy-900 dark:text-white" x-text="productName"></strong>? Tindakan ini tidak dapat dibatalkan.
+                
+                <h3 class="text-2xl font-black text-navy-900 dark:text-white mb-2 tracking-tight">Hapus Produk?</h3>
+                <p class="text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
+                    Anda akan menghapus <span class="font-bold text-navy-900 dark:text-white" x-text="productName"></span> secara permanen. Tindakan ini tidak dapat dibatalkan.
                 </p>
-                <div class="flex gap-3 justify-center">
-                    <button @click="open = false" 
-                            class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors">
-                        Batal
-                    </button>
-                    <form :action="'{{ route('admin.products.index') }}/' + productId" method="POST" class="inline">
+                
+                <div class="flex flex-col gap-3">
+                    <form :action="'{{ route('admin.products.index') }}/' + productId" method="POST">
                         @csrf
                         @method('DELETE')
                         <button type="submit" 
-                                class="px-5 py-2.5 rounded-xl bg-danger text-white hover:bg-red-700 transition-colors">
-                            Hapus
+                                @click="isDeleting = true"
+                                class="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-danger text-white font-bold hover:bg-red-600 shadow-lg shadow-danger/20 transition-all active:scale-[0.98] disabled:opacity-50">
+                            <i x-show="!isDeleting" data-lucide="trash-2" class="w-5 h-5"></i>
+                            <div x-show="isDeleting" class="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            <span x-text="isDeleting ? 'Menghapus...' : 'Ya, Hapus Sekarang'"></span>
                         </button>
                     </form>
+                    
+                    <button @click="open = false" 
+                            class="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 dark:border-white/5 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-all active:scale-[0.98]">
+                        Batalkan
+                    </button>
                 </div>
             </div>
         </div>
@@ -274,11 +384,14 @@
     @push('scripts')
         <script>
         function confirmDelete(productId, productName) {
-            const modal = document.getElementById('deleteModal');
-            const alpineData = Alpine.$data(modal);
-            alpineData.productId = productId;
-            alpineData.productName = productName;
-            alpineData.open = true;
+            window.dispatchEvent(new CustomEvent('open-delete-modal', { 
+                detail: { id: productId, name: productName } 
+            }));
+            
+            // Refresh icons inside modal after it opens
+            setTimeout(() => {
+                lucide.createIcons();
+            }, 10);
         }
 
         document.addEventListener('DOMContentLoaded', function() {

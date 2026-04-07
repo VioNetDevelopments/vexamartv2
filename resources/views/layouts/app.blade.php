@@ -51,7 +51,7 @@
                         <span class="text-lg font-black tracking-tight text-white leading-tight">VEXALYN STORE</span>
                         <div class="flex items-center gap-1">
                             <span class="h-1 w-1 rounded-full bg-accent-500 animate-pulse"></span>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em]">By King Tio</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em]">By Vio Atmajaya</span>
                         </div>
                     </div>
                 </a>
