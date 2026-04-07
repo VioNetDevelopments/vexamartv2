@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\StockMovement;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
@@ -22,10 +24,10 @@ class ProductController extends Controller
         // Search
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('sku', 'LIKE', "%{$search}%")
-                  ->orWhere('barcode', 'LIKE', "%{$search}%");
+                    ->orWhere('sku', 'LIKE', "%{$search}%")
+                    ->orWhere('barcode', 'LIKE', "%{$search}%");
             });
         }
 
@@ -51,8 +53,8 @@ class ProductController extends Controller
         }
 
         // Sort
-        $sortField = $request->get('sort', 'created_at');
-        $sortDirection = $request->get('direction', 'desc');
+        $sortField = $request->input('sort', 'created_at');
+        $sortDirection = $request->input('direction', 'desc');
         $query->orderBy($sortField, $sortDirection);
 
         $products = $query->paginate(15)->withQueryString();
@@ -79,22 +81,17 @@ class ProductController extends Controller
 
         // Generate SKU if not provided
         if (empty($validated['sku'])) {
-            $validated['sku'] = 'SKU-' . strtoupper(Str::random(8));
+            $validated['sku'] = 'SKU-' . strtoupper(\Illuminate\Support\Str::random(8));
         }
 
         // Generate Barcode if not provided
         if (empty($validated['barcode'])) {
-            $validated['barcode'] = '899' . time() . random_int(100, 999);
+            $validated['barcode'] = '899' . rand(1000000000, 9999999999);
         }
 
         // Handle Image Upload
         if ($request->hasFile('image')) {
-            try {
-                $validated['image'] = $request->file('image')->store('products', 'public');
-            } catch (\Throwable $e) {
-                report($e);
-                return back()->withInput()->withErrors(['image' => 'Gagal menyimpan gambar. Silakan coba lagi.']);
-            }
+            $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
         Product::create($validated);
@@ -126,31 +123,51 @@ class ProductController extends Controller
      */
     public function update(UpdateProductRequest $request, Product $product)
     {
-        $validated = $request->validated();
+        DB::beginTransaction();
 
-        // Handle Image Upload
-        if ($request->hasFile('image')) {
-            // Delete old image
-            if ($product->image) {
-                try {
+        try {
+            $validated = $request->validated();
+
+            // Track stock change for stock movement log
+            $oldStock = $product->stock;
+            $newStock = $validated['stock'];
+            $stockChanged = ($oldStock != $newStock);
+
+            // Handle Image Upload
+            if ($request->hasFile('image')) {
+                // Delete old image
+                if ($product->image) {
                     Storage::disk('public')->delete($product->image);
-                } catch (\Throwable $e) {
-                    report($e);
                 }
-            }
-
-            try {
                 $validated['image'] = $request->file('image')->store('products', 'public');
-            } catch (\Throwable $e) {
-                report($e);
-                return back()->withInput()->withErrors(['image' => 'Gagal menyimpan gambar. Silakan coba lagi.']);
             }
+
+            // Update product
+            $product->update($validated);
+
+            // Create stock movement record if stock changed
+            if ($stockChanged) {
+                StockMovement::create([
+                    'product_id' => $product->id,
+                    'user_id' => Auth::id(),
+                    'type' => 'adjustment',
+                    'qty' => $newStock - $oldStock,
+                    'reason' => 'Penyesuaian stok manual dari halaman edit produk',
+                    'stock_before' => $oldStock,
+                    'stock_after' => $newStock,
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.products.index')
+                ->with('success', 'Produk berhasil diupdate!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal mengupdate produk: ' . $e->getMessage())
+                ->withInput();
         }
-
-        $product->update($validated);
-
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Produk berhasil diupdate!');
     }
 
     /**
@@ -175,7 +192,7 @@ class ProductController extends Controller
     public function toggleStatus(Product $product)
     {
         $product->update(['is_active' => !$product->is_active]);
-        
+
         return back()->with('success', 'Status produk berhasil diubah!');
     }
 
@@ -207,10 +224,10 @@ class ProductController extends Controller
     public function search(Request $request)
     {
         $products = Product::where('is_active', true)
-            ->where(function($q) use ($request) {
+            ->where(function ($q) use ($request) {
                 $q->where('name', 'LIKE', "%{$request->search}%")
-                  ->orWhere('sku', 'LIKE', "%{$request->search}%")
-                  ->orWhere('barcode', 'LIKE', "%{$request->search}%");
+                    ->orWhere('sku', 'LIKE', "%{$request->search}%")
+                    ->orWhere('barcode', 'LIKE', "%{$request->search}%");
             })
             ->where('stock', '>', 0)
             ->take(10)
