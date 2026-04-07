@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StockController;
+use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\PosController;
 
@@ -235,9 +236,9 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::get('/', function () {
 
-        if (auth()->user()->role === 'cashier') {
-            return redirect()->route('cashier.pos');
-        }
+        if (Auth::user()->role === 'cashier') {
+    return redirect()->route('cashier.pos');
+}
 
         return redirect()->route('admin.dashboard');
 
