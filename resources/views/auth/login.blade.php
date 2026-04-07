@@ -115,8 +115,8 @@
         /* Container Form di Kanan */
         .forms-container {
             position: absolute;
+            right: 0;
             top: 0;
-            left: 50%;
             width: 50%;
             height: 100%;
             overflow: hidden;
@@ -126,6 +126,7 @@
         .form-container {
             position: absolute;
             top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             padding: 50px;
@@ -138,28 +139,30 @@
         
         /* Login Form - Default Visible */
         #loginForm {
-            right: 0;
             opacity: 1;
             z-index: 2;
+            transform: translateX(0);
         }
         
         /* Register Form - Default Hidden */
         #registerForm {
-            left: 0;
             opacity: 0;
             z-index: 1;
+            transform: translateX(100%);
         }
         
         /* Saat Toggle ke Register */
         #loginForm.hidden {
             opacity: 0;
             z-index: 1;
+            transform: translateX(-100%);
             pointer-events: none;
         }
         
         #registerForm.visible {
             opacity: 1;
             z-index: 2;
+            transform: translateX(0);
             pointer-events: auto;
         }
         
@@ -398,7 +401,7 @@
             .forms-container { 
                 position: relative; 
                 width: 100%; 
-                height: auto; 
+                height: auto;
                 left: 0;
             }
             .form-container { 
@@ -407,6 +410,7 @@
                 opacity: 1 !important; 
                 z-index: 2 !important; 
                 padding: 30px 25px;
+                transform: translateX(0) !important;
             }
             #registerForm { display: none; }
             #registerForm.visible { display: flex; }
