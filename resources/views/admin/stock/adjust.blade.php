@@ -142,7 +142,7 @@
                                 Alasan <span class="text-danger">*</span>
                             </label>
                             <select name="reason" required 
-                                    class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white">
+                                    class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all">
                                 <option value="">-- Pilih Alasan --</option>
                                 <option value="restock">Restock / Pembelian Baru</option>
                                 <option value="damage">Barang Rusak</option>

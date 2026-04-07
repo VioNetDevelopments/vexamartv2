@@ -104,7 +104,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         });
         
         // Customers
-        Route::resource('customers', CustomerController::class);
+        Route::resource('customers', CustomerController::class)->names('customers');
         Route::post('customers/{customer}/add-points', [CustomerController::class, 'addPoints'])->name('customers.add-points');
         
         // Transactions

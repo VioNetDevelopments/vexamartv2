@@ -25,13 +25,13 @@
                 @if($product)
                 <input type="hidden" name="product" value="{{ $product->id }}">
                 @endif
-                <select name="product" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white min-w-48">
+                <select name="product" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white min-w-48 transition-all">
                     <option value="">Semua Produk</option>
                     @foreach($products as $p)
                     <option value="{{ $p->id }}" {{ (isset($product) && $product->id==$p->id)?'selected':'' }}>{{ $p->name }}</option>
                     @endforeach
                 </select>
-                <select name="type" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white">
+                <select name="type" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all">
                     <option value="">Semua Tipe</option>
                     <option value="in" {{ request('type')=='in'?'selected':'' }}>Stok Masuk</option>
                     <option value="out" {{ request('type')=='out'?'selected':'' }}>Stok Keluar</option>

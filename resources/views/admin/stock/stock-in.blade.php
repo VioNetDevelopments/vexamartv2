@@ -52,7 +52,7 @@
                             </label>
                             <select name="product_id" required x-model="selectedProduct"
                                 @change="fetchProductData(selectedProduct)"
-                                class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white">
+                                class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all">
                                 <option value="">-- Pilih Produk --</option>
                                 @foreach($products as $product)
                                     <option value="{{ $product->id }}" data-stock="{{ $product->stock }}"
@@ -123,7 +123,7 @@
                                 Alasan <span class="text-danger">*</span>
                             </label>
                             <select name="reason" required
-                                class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white">
+                                class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all">
                                 <option value="">-- Pilih Alasan --</option>
                                 <option value="Pembelian dari supplier">Pembelian dari Supplier</option>
                                 <option value="Retur dari pelanggan">Retur dari Pelanggan</option>

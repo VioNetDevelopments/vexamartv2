@@ -67,31 +67,25 @@ groupBy:'{{ $groupBy }}'
             <!-- Group By -->
             <div class="space-y-2">
                 <label class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Grup Data</label>
-                <div class="relative">
-                    <select name="group_by" x-model="groupBy"
-                            class="w-full pl-4 pr-10 py-3 rounded-2xl border border-slate-200 bg-slate-50/50 text-sm font-bold focus:border-accent-500 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all appearance-none">
-                        <option value="daily">Harian</option>
-                        <option value="weekly">Mingguan</option>
-                        <option value="monthly">Bulanan</option>
-                    </select>
-                    <i data-lucide="chevron-down" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"></i>
-                </div>
+                <select name="group_by" x-model="groupBy"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all">
+                    <option value="daily">Harian</option>
+                    <option value="weekly">Mingguan</option>
+                    <option value="monthly">Bulanan</option>
+                </select>
             </div>
 
             <!-- Payment Method -->
             <div class="space-y-2">
                 <label class="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Metode Bayar</label>
-                <div class="relative">
-                    <select name="payment_method"
-                            class="w-full pl-4 pr-10 py-3 rounded-2xl border border-slate-200 bg-slate-50/50 text-sm font-bold focus:border-accent-500 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all appearance-none">
-                        <option value="">Semua Metode</option>
-                        <option value="cash" {{ request('payment_method')=='cash'?'selected':'' }}>Tunai</option>
-                        <option value="qris" {{ request('payment_method')=='qris'?'selected':'' }}>QRIS</option>
-                        <option value="debit" {{ request('payment_method')=='debit'?'selected':'' }}>Debit</option>
-                        <option value="ewallet" {{ request('payment_method')=='ewallet'?'selected':'' }}>E-Wallet</option>
-                    </select>
-                    <i data-lucide="chevron-down" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"></i>
-                </div>
+                <select name="payment_method"
+                        class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all">
+                    <option value="">Semua Metode</option>
+                    <option value="cash" {{ request('payment_method')=='cash'?'selected':'' }}>Tunai</option>
+                    <option value="qris" {{ request('payment_method')=='qris'?'selected':'' }}>QRIS</option>
+                    <option value="debit" {{ request('payment_method')=='debit'?'selected':'' }}>Debit</option>
+                    <option value="ewallet" {{ request('payment_method')=='ewallet'?'selected':'' }}>E-Wallet</option>
+                </select>
             </div>
 
             <!-- Action -->
