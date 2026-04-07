@@ -38,55 +38,99 @@
 
         <!-- SIDEBAR -->
         <aside :class="sidebarOpen ? 'w-64' : 'w-20'" 
-               class="fixed inset-y-0 left-0 z-50 flex flex-col bg-navy-900 border-r border-white/10 transition-all duration-300 ease-in-out lg:static lg:inset-0 shadow-2xl">
+               class="fixed inset-y-0 left-0 z-50 flex flex-col bg-navy-900 border-r border-white/[0.05] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] lg:static lg:inset-0 shadow-[4px_0_24px_rgba(0,0,0,0.3)] overflow-hidden">
             
-            <!-- Logo -->
-            <div class="flex h-16 items-center justify-between px-6 border-b border-white/5">
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 overflow-hidden whitespace-nowrap">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30 flex-shrink-0">
+            <!-- Logo Section -->
+            <div class="flex h-20 items-center px-6 relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-br from-accent-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3.5 relative z-10 transition-transform duration-300 hover:scale-[1.02]">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/40 flex-shrink-0 animate-pulse-glow">
                         <i data-lucide="shopping-bag" class="h-5 w-5"></i>
                     </div>
-                    <span x-show="sidebarOpen" class="text-xl font-bold text-white transition-opacity duration-300">VexaMart</span>
+                    <div class="flex flex-col overflow-hidden whitespace-nowrap" x-show="sidebarOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+                        <span class="text-lg font-black tracking-tight text-white leading-tight">VEXALYN STORE</span>
+                        <div class="flex items-center gap-1">
+                            <span class="h-1 w-1 rounded-full bg-accent-500 animate-pulse"></span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em]">By King Tio</span>
+                        </div>
+                    </div>
                 </a>
             </div>
 
-            <!-- Navigation -->
-            <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
+            <!-- Navigation Section -->
+            <div class="flex-1 overflow-y-auto px-4 py-6 space-y-8 custom-scrollbar">
                 @php
-                    $menuItems = [
-                        ['name' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => route('admin.dashboard'), 'role' => ['owner', 'admin']],
-                        ['name' => 'Kasir (POS)', 'icon' => 'monitor-smartphone', 'route' => route('cashier.pos'), 'role' => ['cashier', 'admin', 'owner']],
-                        ['name' => 'Produk', 'icon' => 'package', 'route' => route('admin.products.index'), 'role' => ['owner', 'admin']],
-                        ['name' => 'Transaksi', 'icon' => 'receipt', 'route' => route('admin.transactions.index'), 'role' => ['owner', 'admin']],
-                        ['name' => 'Stok', 'icon' => 'warehouse', 'route' => route('admin.stock.index'), 'role' => ['owner', 'admin']],
-                        ['name' => 'Laporan', 'icon' => 'bar-chart-3', 'route' => route('admin.reports.index'), 'role' => ['owner', 'admin']],
-                        ['name' => 'Pelanggan', 'icon' => 'users', 'route' => route('admin.customers.index'), 'role' => ['owner', 'admin']],
-                        ['name' => 'Pengaturan', 'icon' => 'settings', 'route' => route('admin.settings.index'), 'role' => ['owner', 'admin']],
+                    $menuGroups = [
+                        'MENU UTAMA' => [
+                            ['name' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => route('admin.dashboard'), 'role' => ['owner', 'admin']],
+                            ['name' => 'Kasir (POS)', 'icon' => 'monitor-smartphone', 'route' => route('cashier.pos'), 'role' => ['cashier', 'admin', 'owner']],
+                        ],
+                        'MANAJEMEN' => [
+                            ['name' => 'Produk', 'icon' => 'package', 'route' => route('admin.products.index'), 'role' => ['owner', 'admin']],
+                            ['name' => 'Transaksi', 'icon' => 'receipt', 'route' => route('admin.transactions.index'), 'role' => ['owner', 'admin']],
+                            ['name' => 'Stok', 'icon' => 'warehouse', 'route' => route('admin.stock.index'), 'role' => ['owner', 'admin']],
+                            ['name' => 'Pelanggan', 'icon' => 'users', 'route' => route('admin.customers.index'), 'role' => ['owner', 'admin']],
+                        ],
+                        'ANALITIK' => [
+                            ['name' => 'Laporan', 'icon' => 'bar-chart-3', 'route' => route('admin.reports.index'), 'role' => ['owner', 'admin']],
+                        ],
+                        'SISTEM' => [
+                            ['name' => 'Pengaturan', 'icon' => 'settings', 'route' => route('admin.settings.index'), 'role' => ['owner', 'admin']],
+                        ]
                     ];
-
                     $userRole = auth()->user()->role;
                 @endphp
 
-                @foreach($menuItems as $item)
-                    @if(in_array($userRole, $item['role']))
-                        @php
-                            $isActive = request()->routeIs($item['route']);
-                        @endphp
-                        <a href="{{ $item['route'] }}" 
-                           class="group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 
-                                  {{ $isActive ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-400 hover:bg-white/10 hover:text-white' }}">
-                            <i data-lucide="{{ $item['icon'] }}" class="h-5 w-5 shrink-0"></i>
-                            <span x-show="sidebarOpen" class="whitespace-nowrap transition-opacity duration-300">{{ $item['name'] }}</span>
+                @foreach($menuGroups as $group => $items)
+                    @php
+                        $hasVisibleItems = false;
+                        foreach($items as $item) {
+                            if(in_array($userRole, $item['role'])) $hasVisibleItems = true;
+                        }
+                    @endphp
 
-                            @if($isActive)
-                                <div x-show="sidebarOpen" class="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
-                            @endif
-                        </a>
+                    @if($hasVisibleItems)
+                        <div class="space-y-2">
+                            <div x-show="sidebarOpen" x-transition class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">
+                                {{ $group }}
+                            </div>
+                            <div class="space-y-1.5">
+                                @foreach($items as $item)
+                                    @if(in_array($userRole, $item['role']))
+                                        @php
+                                            $isActive = request()->is(parse_url($item['route'], PHP_URL_PATH) . '*');
+                                        @endphp
+                                        <a href="{{ $item['route'] }}" 
+                                           class="group relative flex items-center gap-3.5 rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-300 
+                                                  {{ $isActive 
+                                                      ? 'bg-accent-500/10 text-white border border-white/10 shadow-[0_0_20px_rgba(37,99,235,0.15)]' 
+                                                      : 'text-slate-400 hover:text-white hover:bg-white/[0.05] hover:translate-x-1' }}">
+                                            
+                                            <!-- Active Background Glow -->
+                                            @if($isActive)
+                                                <div class="absolute inset-0 bg-accent-500/5 rounded-2xl blur-sm"></div>
+                                                <div class="absolute left-0 top-1/4 bottom-1/4 w-1 bg-gradient-to-b from-accent-400 to-accent-600 rounded-full shadow-[0_0_8px_rgba(37,99,235,0.6)]"></div>
+                                            @endif
+
+                                            <i data-lucide="{{ $item['icon'] }}" 
+                                               class="h-5 w-5 shrink-0 transition-transform duration-300 group-hover:scale-110 {{ $isActive ? 'text-accent-400' : 'text-slate-500 group-hover:text-white' }}"></i>
+                                            
+                                            <span x-show="sidebarOpen" class="whitespace-nowrap transition-all duration-300">{{ $item['name'] }}</span>
+                                            
+                                            @if($isActive && $isActive)
+                                                <div x-show="sidebarOpen" class="ml-auto flex items-center justify-center">
+                                                    <div class="w-1.5 h-1.5 rounded-full bg-accent-500 shadow-[0_0_8px_rgba(37,99,235,0.8)] animate-pulse"></div>
+                                                </div>
+                                            @endif
+                                        </a>
+                                    @endif
+                                @endforeach
+                            </div>
+                        </div>
                     @endif
                 @endforeach
-            </nav>
+            </div>
 
-            <!-- Bottom Section - Removed Profile from here -->
         </aside>
 
         <!-- MAIN CONTENT -->
@@ -97,8 +141,12 @@
                 
                 <!-- Left -->
                 <div class="flex items-center gap-4">
-                    <button @click="sidebarOpen = !sidebarOpen" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-navy-900 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white">
-                        <i data-lucide="panel-left" class="h-5 w-5"></i>
+                    <button @click="sidebarOpen = !sidebarOpen" 
+                            class="group relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white/50 text-slate-600 shadow-sm transition-all duration-500 hover:border-accent-500 hover:text-accent-600 hover:shadow-md hover:shadow-accent-500/10 dark:border-white/5 dark:bg-navy-800/50 dark:text-slate-400 dark:hover:border-accent-500/50 dark:hover:text-accent-400">
+                        <div class="absolute inset-0 rounded-xl bg-accent-500/5 opacity-0 transition-opacity group-hover:opacity-100"></div>
+                        <i data-lucide="panel-left" 
+                           class="relative z-10 h-5 w-5 transition-transform duration-500" 
+                           :class="sidebarOpen ? '' : 'rotate-180'"></i>
                     </button>
                     
                     <!-- Search -->

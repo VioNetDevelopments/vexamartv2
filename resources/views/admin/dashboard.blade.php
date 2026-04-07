@@ -32,9 +32,21 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-sm font-semibold text-navy-900 dark:text-white" id="currentDate"></p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400" id="currentTime"></p>
+                    <div class="hidden sm:flex items-center gap-3 bg-white/50 dark:bg-navy-800/50 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all duration-300">
+                        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 shadow-lg shadow-accent-500/20 group cursor-default">
+                            <i data-lucide="clock" class="h-6 w-6 text-white group-hover:rotate-12 transition-transform duration-300"></i>
+                        </div>
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-1.5 mb-0.5">
+                                <span class="h-1.5 w-1.5 rounded-full bg-accent-500 animate-pulse"></span>
+                                <p class="text-[10px] font-black uppercase tracking-widest text-accent-600 dark:text-accent-400 leading-none">Live Monitor</p>
+                            </div>
+                            <div class="flex items-baseline gap-2">
+                                <p class="text-sm font-bold text-navy-900 dark:text-white" id="currentDate"></p>
+                                <span class="text-slate-300 dark:text-white/10 text-xs">|</span>
+                                <p class="text-sm font-black text-navy-900 dark:text-white font-mono" id="currentTime"></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
