@@ -24,7 +24,7 @@ use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
-| Default Route (FIXED)
+| Default Route
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
@@ -50,16 +50,27 @@ Route::middleware('guest')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Protected Routes
+| API Routes for Settings (Accessible for POS without full auth group)
+|--------------------------------------------------------------------------
+*/
+Route::get('/api/settings', [SettingController::class, 'getSettings'])->name('api.settings');
+Route::post('/api/settings/upload-logo', [SettingController::class, 'uploadLogo'])
+    ->name('api.settings.upload-logo')
+    ->middleware(['auth']);
+
+/*
+|--------------------------------------------------------------------------
+| Protected Routes (Require Authentication)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
 
+    // Logout
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     /*
     |--------------------------------------------------------------------------
-    | Activity Logs (Tambahan sesuai request)
+    | Activity Logs (Owner & Admin Only)
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:owner,admin')
@@ -68,15 +79,17 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Admin Routes
+    | Admin Routes (Owner & Admin Only)
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:owner,admin')->prefix('admin')->name('admin.')->group(function () {
 
+        // Dashboard
         Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard');
         Route::get('/search', [SearchController::class, 'globalSearch'])->name('search');
+        Route::get('/verification', fn() => view('admin.verification'))->name('verification');
 
-        // Chart Data
+        // Chart Data for Dashboard
         Route::get('/dashboard/chart-data', function (Request $request) {
             $period = $request->input('period', '7');
             $days = (int) $period;
@@ -105,25 +118,23 @@ Route::middleware(['auth'])->group(function () {
             ]);
         })->name('dashboard.chart-data');
 
-        Route::get('/verification', fn() => view('admin.verification'))->name('verification');
-
-        // Products
+        // Products Management
         Route::resource('products', ProductController::class);
         Route::post('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
         Route::get('products/search', [ProductController::class, 'search'])->name('products.search');
         Route::get('products/by-barcode', [ProductController::class, 'getByBarcode'])->name('products.by-barcode');
 
-        // Categories
+        // Categories Management
         Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
 
-        // Reports
+        // Reports Management
         Route::prefix('reports')->name('reports.')->group(function () {
             Route::get('/', [ReportController::class, 'index'])->name('index');
             Route::get('/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');
             Route::get('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
         });
 
-        // Stock
+        // Stock Management
         Route::prefix('stock')->name('stock.')->group(function () {
             Route::get('/', [StockController::class, 'index'])->name('index');
             Route::get('/{product}/adjust', [StockController::class, 'adjust'])->name('adjust');
@@ -135,53 +146,79 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/api/low-stock', [StockController::class, 'getLowStock'])->name('api.low-stock');
         });
 
-        // Customers
+        // Customers Management
         Route::resource('customers', CustomerController::class)->names('customers');
         Route::post('customers/{customer}/add-points', [CustomerController::class, 'addPoints'])->name('customers.add-points');
 
-        // Transactions
+        // Transactions Management
         Route::prefix('transactions')->name('transactions.')->group(function () {
             Route::get('/', [TransactionController::class, 'index'])->name('index');
             Route::get('/{transaction}', [TransactionController::class, 'show'])->name('show');
             Route::get('/{transaction}/print', [TransactionController::class, 'print'])->name('print');
         });
 
-        // Settings
+        // Settings Management
         Route::prefix('settings')->name('settings.')->group(function () {
             Route::get('/', [SettingController::class, 'index'])->name('index');
             Route::put('/', [SettingController::class, 'update'])->name('update');
+            Route::delete('/reset-logo', [SettingController::class, 'resetLogo'])->name('reset-logo');
             Route::get('/backup', [SettingController::class, 'backup'])->name('backup');
+        });
+
+        // User Management
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::get('/', [UserController::class, 'index'])->name('index');
+            Route::get('/create', [UserController::class, 'create'])->name('create');
+            Route::post('/', [UserController::class, 'store'])->name('store');
+            Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
+            Route::put('/{user}', [UserController::class, 'update'])->name('update');
+            Route::post('/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('toggle-status');
+            Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
         });
     });
 
     /*
     |--------------------------------------------------------------------------
-    | Cashier Routes
+    | Cashier Routes (Cashier, Admin & Owner)
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:cashier,admin,owner')->prefix('cashier')->name('cashier.')->group(function () {
 
+        // Dashboard & POS
         Route::get('/dashboard', [DashboardController::class, 'cashierDashboard'])->name('dashboard');
         Route::get('/pos', [PosController::class, 'index'])->name('pos');
+
+        // Products Search & Barcode
         Route::get('/products', [PosController::class, 'getProducts'])->name('products.search');
         Route::get('/products/by-barcode', [PosController::class, 'scanBarcode'])->name('products.by-barcode');
+
+        // Transaction Processing
         Route::post('/transaction', [PosController::class, 'processTransaction'])->name('transaction.store');
         Route::get('/transaction/{id}', [PosController::class, 'getTransaction'])->name('transaction.show');
-    });
 
-    /*
-    |--------------------------------------------------------------------------
-    | User Management
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware('role:owner,admin')->prefix('admin/users')->name('admin.users.')->group(function () {
-        Route::get('/', [UserController::class, 'index'])->name('index');
-        Route::get('/create', [UserController::class, 'create'])->name('create');
-        Route::post('/', [UserController::class, 'store'])->name('store');
-        Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
-        Route::put('/{user}', [UserController::class, 'update'])->name('update');
-        Route::post('/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('toggle-status');
-        Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
-    });
+        // Hold/Recall Transaction
+        Route::post('/hold-transaction', [PosController::class, 'holdTransaction'])->name('hold-transaction');
+        Route::get('/held-transactions', [PosController::class, 'getHeldTransactions'])->name('held-transactions');
+        Route::post('/recall-transaction/{id}', [PosController::class, 'recallTransaction'])->name('recall-transaction');
 
+        // Void Transaction
+        Route::post('/void-transaction', [PosController::class, 'voidTransaction'])->name('void-transaction');
+
+        // Price Override (Admin/Owner Only - handled in controller)
+        Route::post('/price-override', [PosController::class, 'priceOverride'])->name('price-override');
+
+        // Stock Check
+        Route::get('/stock-check/{productId}', [PosController::class, 'stockCheck'])->name('stock-check');
+
+        // Cash Management
+        Route::post('/cash-in-out', [PosController::class, 'cashInOut'])->name('cash-in-out');
+
+        // Shift Management
+        Route::post('/open-shift', [PosController::class, 'openShift'])->name('open-shift');
+        Route::post('/close-shift', [PosController::class, 'closeShift'])->name('close-shift');
+        Route::get('/shift-summary', [PosController::class, 'shiftSummary'])->name('shift-summary');
+
+        // Daily Sales Summary
+        Route::get('/daily-sales', [PosController::class, 'dailySales'])->name('daily-sales');
+    });
 });

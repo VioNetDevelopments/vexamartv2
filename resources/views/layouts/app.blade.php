@@ -40,23 +40,30 @@
         <aside :class="sidebarOpen ? 'w-64' : 'w-20'" 
                class="fixed inset-y-0 left-0 z-50 flex flex-col bg-navy-900 border-r border-white/[0.05] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] lg:static lg:inset-0 shadow-[4px_0_24px_rgba(0,0,0,0.3)] overflow-hidden">
             
-            <!-- Logo Section -->
-            <div class="flex h-20 items-center px-6 relative overflow-hidden group">
-                <div class="absolute inset-0 bg-gradient-to-br from-accent-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3.5 relative z-10 transition-transform duration-300 hover:scale-[1.02]">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/40 flex-shrink-0 animate-pulse-glow">
-                        <i data-lucide="shopping-bag" class="h-5 w-5"></i>
-                    </div>
-                    <div class="flex flex-col overflow-hidden whitespace-nowrap" x-show="sidebarOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
-                        <span class="text-lg font-black tracking-tight text-white leading-tight">VEXALYN STORE</span>
-                        <div class="flex items-center gap-1">
-                            <span class="h-1 w-1 rounded-full bg-accent-500 animate-pulse"></span>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em]">By Vio Atmajaya</span>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
+          <!-- Logo Section - Dynamic from Database -->
+<div class="flex h-16 items-center justify-between px-6 border-b border-white/5">
+    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 overflow-hidden">
+        <!-- Dynamic Logo -->
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30 flex-shrink-0 overflow-hidden" id="sidebarLogo">
+            @php
+                $logo = \App\Models\Setting::get('store_logo');
+            @endphp
+            @if($logo && Storage::disk('public')->exists($logo))
+                <img src="{{ asset('storage/' . $logo) }}" alt="Logo" class="w-full h-full object-cover rounded-xl">
+            @else
+                <i data-lucide="shopping-bag" class="h-5 w-5"></i>
+            @endif
+        </div>
+        <div class="flex flex-col min-w-0 flex-1">
+            <span x-show="sidebarOpen" class="text-base font-bold text-white transition-opacity duration-300 truncate" id="sidebarStoreName">
+                {{ \App\Models\Setting::get('store_name', 'VexaMart') }}
+            </span>
+            <span x-show="sidebarOpen" class="text-[10px] text-slate-400 transition-opacity duration-300 truncate" id="sidebarTagline">
+                {{ \App\Models\Setting::get('store_tagline', 'Solusi Belanja Modern') }}
+            </span>
+        </div>
+    </a>
+</div>
             <!-- Navigation Section -->
             <div class="flex-1 overflow-y-auto px-4 py-6 space-y-8 custom-scrollbar">
                 @php
@@ -346,16 +353,31 @@
         </div>
     </div>
 
-    <!-- Initialize Icons -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            lucide.createIcons();
-        });
+   <script>
+// Auto-update sidebar when settings change
+document.addEventListener('DOMContentLoaded', function() {
+    // Listen for settings update event
+    window.addEventListener('settingsUpdated', function(e) {
+        const data = e.detail;
         
-        document.addEventListener('alpine:initialized', () => {
-            setTimeout(() => lucide.createIcons(), 100);
-        });
-    </script>
+        // Update sidebar logo
+        if (data.logo_url) {
+            const logoContainer = document.getElementById('sidebarLogo');
+            if (logoContainer) {
+                logoContainer.innerHTML = `<img src="${data.logo_url}" alt="Logo" class="w-full h-full object-cover rounded-xl">`;
+            }
+        }
+        
+        // Update sidebar store name
+        if (data.store_name) {
+            const storeName = document.getElementById('sidebarStoreName');
+            if (storeName) {
+                storeName.textContent = data.store_name;
+            }
+        }
+    });
+});
+</script>
     
     @stack('scripts')
 </body>
