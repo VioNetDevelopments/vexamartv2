@@ -13,7 +13,8 @@ use App\Models\CashierNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use App\Helpers\SettingHelper;
 
 class PosController extends Controller
 {
@@ -101,20 +102,40 @@ class PosController extends Controller
      */
     public function processTransaction(Request $request)
     {
+        // VALIDASI PEMBATASAN
         $validated = $request->validate([
             'customer_id' => 'nullable|exists:customers,id',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.qty' => 'required|integer|min:1',
             'items.*.price' => 'required|numeric|min:0',
-            'discount' => 'nullable|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0|max:100',
             'payment_method' => 'required|in:cash,qris,debit,ewallet',
             'paid_amount' => 'required|numeric|min:0',
+        ], [
+            'items.required' => 'Minimal harus ada 1 produk',
+            'items.*.qty.min' => 'Quantity minimal 1',
+            'payment_method.required' => 'Metode pembayaran harus dipilih',
+            'payment_method.in' => 'Metode pembayaran tidak valid',
+            'paid_amount.required' => 'Jumlah bayar harus diisi',
+            'paid_amount.min' => 'Jumlah bayar tidak boleh kurang dari 0',
         ]);
 
         DB::beginTransaction();
         
         try {
+            // Cek stok untuk semua produk
+            foreach ($validated['items'] as $item) {
+                $product = Product::findOrFail($item['product_id']);
+                
+                if ($product->stock < $item['qty']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Stok produk {$product->name} tidak mencukupi. Tersedia: {$product->stock}, Diminta: {$item['qty']}"
+                    ], 422);
+                }
+            }
+
             // Generate unique invoice code
             $characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
             $randomCode = '';
@@ -129,21 +150,35 @@ class PosController extends Controller
             });
             
             $discount = $validated['discount'] ?? 0;
-            $tax = 0;
-            $grandTotal = $subtotal - $discount + $tax;
+            $discountAmount = ($subtotal * $discount) / 100;
+            $taxRate = SettingHelper::get('tax_rate', 0);
+            $tax = (($subtotal - $discountAmount) * $taxRate) / 100;
+            $grandTotal = $subtotal - $discountAmount + $tax;
             
+            // VALIDASI PEMBAYARAN
+            if ($validated['paid_amount'] < $grandTotal) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Uang pembayaran kurang',
+                    'shortage' => $grandTotal - $validated['paid_amount'],
+                    'grand_total' => $grandTotal
+                ], 422);
+            }
+
+            $changeAmount = $validated['paid_amount'] - $grandTotal;
+
             // Create transaction
             $transaction = Transaction::create([
                 'invoice_code' => $invoiceCode,
                 'user_id' => Auth::id(),
                 'customer_id' => $validated['customer_id'] ?? null,
                 'subtotal' => $subtotal,
-                'discount' => $discount,
+                'discount' => $discountAmount,
                 'tax' => $tax,
                 'grand_total' => $grandTotal,
                 'payment_method' => $validated['payment_method'],
                 'paid_amount' => $validated['paid_amount'],
-                'change_amount' => $validated['paid_amount'] - $grandTotal,
+                'change_amount' => $changeAmount,
                 'payment_status' => 'paid',
             ]);
 
@@ -162,12 +197,7 @@ class PosController extends Controller
                 $product->decrement('stock', $item['qty']);
             }
 
-            // Create notification for digital payments
-            if (in_array($validated['payment_method'], ['qris', 'debit', 'ewallet'])) {
-                CashierNotification::createPaymentNotification(Auth::id(), $transaction);
-            }
-
-            // ✅ UPDATE CUSTOMER POINTS & TOTAL SPENT
+            // Add loyalty points untuk customer
             if ($validated['customer_id']) {
                 $customer = Customer::find($validated['customer_id']);
                 
@@ -186,15 +216,6 @@ class PosController extends Controller
                     
                     // Auto-update membership
                     $customer->updateMembership();
-                    
-                    // Log for debugging
-                    \Log::info("Customer points updated", [
-                        'customer_id' => $customer->id,
-                        'points_added' => $points,
-                        'new_points' => $customer->loyalty_points,
-                        'total_spent' => $customer->total_spent,
-                        'membership' => $customer->membership,
-                    ]);
                 }
             }
 
@@ -204,12 +225,13 @@ class PosController extends Controller
                 'success' => true,
                 'message' => 'Transaksi berhasil',
                 'invoice_code' => $invoiceCode,
-                'transaction' => $transaction->load(['items.product', 'customer', 'user'])
+                'transaction' => $transaction->load(['items.product', 'customer', 'user']),
+                'change_amount' => $changeAmount
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Transaction error: " . $e->getMessage());
+            Log::error("Transaction error: " . $e->getMessage());
             
             return response()->json([
                 'success' => false,
@@ -251,7 +273,7 @@ class PosController extends Controller
      */
     public function stockCheckData(Request $request)
     {
-        $perPage = $request->get('per_page', 6);
+        $perPage = $request->input('per_page', 6);
         
         $query = Product::with('category')
             ->where('is_active', true)

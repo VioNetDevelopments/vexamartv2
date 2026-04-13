@@ -43,6 +43,11 @@
             width: 1.5rem;
             height: 1.5rem;
         }
+
+        /* Sidebar active state */
+        .sidebar-active {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
     </style>
 </head>
 
@@ -102,86 +107,104 @@
 
         <!-- Sidebar Menu -->
         <nav class="p-4 space-y-1 overflow-y-auto" style="height: calc(100% - 140px);">
-            <!-- Menu Utama -->
-            <div class="mb-6">
-                <p class="px-3 mb-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                    Menu Utama</p>
+            
+            @if(auth()->user()->role === 'owner' || auth()->user()->role === 'admin')
+                <!-- Menu Utama - Untuk Admin/Owner -->
+                <div class="mb-6">
+                    <p class="px-3 mb-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Menu Utama</p>
+                    
+                    <a href="{{ route('admin.dashboard') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.dashboard') ? 'sidebar-active text-white shadow-lg shadow-blue-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.dashboard') ? 'text-white' : 'text-slate-400 group-hover:text-blue-500' }}"></i>
+                        <span class="text-sm font-bold whitespace-nowrap">Dashboard</span>
+                    </a>
 
-                <a href="{{ route('admin.dashboard') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.dashboard') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
-                    <i data-lucide="layout-dashboard"
-                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.dashboard') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
-                    <span class="text-sm font-bold whitespace-nowrap">Dashboard</span>
-                </a>
+                    <a href="{{ route('cashier.pos') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('cashier.pos') ? 'sidebar-active text-white shadow-lg shadow-blue-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                        <i data-lucide="monitor-smartphone" class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('cashier.pos') ? 'text-white' : 'text-slate-400 group-hover:text-blue-500' }}"></i>
+                        <span class="text-sm font-bold whitespace-nowrap">Kasir (POS)</span>
+                    </a>
+                </div>
 
-                <a href="{{ route('cashier.pos') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('cashier.pos') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
-                    <i data-lucide="monitor-smartphone"
-                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('cashier.pos') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
-                    <span class="text-sm font-bold whitespace-nowrap">Kasir (POS)</span>
-                </a>
-            </div>
+                <!-- Manajemen - Untuk Admin/Owner -->
+                <div class="mb-6">
+                    <p class="px-3 mb-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Manajemen</p>
+                    
+                    <a href="{{ route('admin.products.index') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.products.*') ? 'sidebar-active text-white shadow-lg shadow-blue-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                        <i data-lucide="package" class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.products.*') ? 'text-white' : 'text-slate-400 group-hover:text-blue-500' }}"></i>
+                        <span class="text-sm font-bold whitespace-nowrap">Produk</span>
+                    </a>
 
-            <!-- Manajemen -->
-            <div class="mb-6">
-                <p class="px-3 mb-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                    Manajemen</p>
+                    <a href="{{ route('admin.transactions.index') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.transactions.*') ? 'sidebar-active text-white shadow-lg shadow-blue-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                        <i data-lucide="receipt" class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.transactions.*') ? 'text-white' : 'text-slate-400 group-hover:text-blue-500' }}"></i>
+                        <span class="text-sm font-bold whitespace-nowrap">Transaksi</span>
+                    </a>
 
-                <a href="{{ route('admin.products.index') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.products.*') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
-                    <i data-lucide="box"
-                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.products.*') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
-                    <span class="text-sm font-bold whitespace-nowrap">Produk</span>
-                </a>
+                    <a href="{{ route('admin.stock.index') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.stock.*') ? 'sidebar-active text-white shadow-lg shadow-blue-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                        <i data-lucide="warehouse" class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.stock.*') ? 'text-white' : 'text-slate-400 group-hover:text-blue-500' }}"></i>
+                        <span class="text-sm font-bold whitespace-nowrap">Stok</span>
+                    </a>
 
-                <a href="{{ route('admin.transactions.index') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.transactions.*') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
-                    <i data-lucide="receipt"
-                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.transactions.*') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
-                    <span class="text-sm font-bold whitespace-nowrap">Transaksi</span>
-                </a>
+                    <a href="{{ route('admin.customers.index') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.customers.*') ? 'sidebar-active text-white shadow-lg shadow-blue-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                        <i data-lucide="users" class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.customers.*') ? 'text-white' : 'text-slate-400 group-hover:text-blue-500' }}"></i>
+                        <span class="text-sm font-bold whitespace-nowrap">Pelanggan</span>
+                    </a>
 
-                <a href="{{ route('admin.stock.index') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.stock.*') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
-                    <i data-lucide="warehouse"
-                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.stock.*') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
-                    <span class="text-sm font-bold whitespace-nowrap">Stok</span>
-                </a>
+                    <a href="{{ route('admin.reports.index') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.reports.*') ? 'sidebar-active text-white shadow-lg shadow-blue-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.reports.*') ? 'text-white' : 'text-slate-400 group-hover:text-blue-500' }}"></i>
+                        <span class="text-sm font-bold whitespace-nowrap">Laporan</span>
+                    </a>
+                </div>
 
-                <a href="{{ route('admin.customers.index') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.customers.*') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
-                    <i data-lucide="users"
-                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.customers.*') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
-                    <span class="text-sm font-bold whitespace-nowrap">Pelanggan</span>
-                </a>
+                <!-- Pengaturan - Untuk Admin/Owner -->
+                <div class="mb-6">
+                    <p class="px-3 mb-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Pengaturan</p>
+                    
+                    <a href="{{ route('admin.settings.index') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.settings.*') ? 'sidebar-active text-white shadow-lg shadow-blue-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                        <i data-lucide="settings" class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.settings.*') ? 'text-white' : 'text-slate-400 group-hover:text-blue-500' }}"></i>
+                        <span class="text-sm font-bold whitespace-nowrap">Pengaturan Toko</span>
+                    </a>
 
-                <a href="{{ route('admin.reports.index') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.reports.*') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
-                    <i data-lucide="bar-chart-3"
-                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.reports.*') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
-                    <span class="text-sm font-bold whitespace-nowrap">Laporan</span>
-                </a>
-            </div>
+                    <a href="{{ route('admin.users.index') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.users.*') ? 'sidebar-active text-white shadow-lg shadow-blue-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                        <i data-lucide="user-cog" class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.users.*') ? 'text-white' : 'text-slate-400 group-hover:text-blue-500' }}"></i>
+                        <span class="text-sm font-bold whitespace-nowrap">User</span>
+                    </a>
+                </div>
+            @else
+                <!-- Menu untuk Kasir -->
+                <div class="mb-6">
+                    <p class="px-3 mb-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Menu Utama</p>
+                    
+                    <a href="{{ route('cashier.pos') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('cashier.pos') ? 'sidebar-active text-white shadow-lg shadow-blue-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                        <i data-lucide="monitor-smartphone" class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('cashier.pos') ? 'text-white' : 'text-slate-400 group-hover:text-blue-500' }}"></i>
+                        <span class="text-sm font-bold whitespace-nowrap">Kasir (POS)</span>
+                    </a>
+                </div>
 
-            <!-- Pengaturan -->
-            <div class="mb-6">
-                <p class="px-3 mb-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                    Pengaturan</p>
+                <div class="mb-6">
+                    <p class="px-3 mb-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Informasi</p>
+                    
+                    <a href="{{ route('admin.stock.index') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.stock.*') ? 'sidebar-active text-white shadow-lg shadow-blue-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                        <i data-lucide="warehouse" class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.stock.*') ? 'text-white' : 'text-slate-400 group-hover:text-blue-500' }}"></i>
+                        <span class="text-sm font-bold whitespace-nowrap">Cek Stok</span>
+                    </a>
 
-                <a href="{{ route('admin.settings.index') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.settings.*') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
-                    <i data-lucide="settings"
-                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.settings.*') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
-                    <span class="text-sm font-bold whitespace-nowrap">Pengaturan Toko</span>
-                </a>
-
-                <a href="{{ route('admin.users.index') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.users.*') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
-                    <i data-lucide="user-cog"
-                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.users.*') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
-                    <span class="text-sm font-bold whitespace-nowrap">User</span>
-                </a>
-            </div>
+                    <a href="{{ route('cashier.transactions') }}" 
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('cashier.transactions*') ? 'sidebar-active text-white shadow-lg shadow-blue-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                        <i data-lucide="history" class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('cashier.transactions*') ? 'text-white' : 'text-slate-400 group-hover:text-blue-500' }}"></i>
+                        <span class="text-sm font-bold whitespace-nowrap">Histori Transaksi</span>
+                    </a>
+                </div>
+            @endif
         </nav>
 
         <!-- User Profile -->

@@ -17,10 +17,10 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\CustomerController as AdminCustomerController;
 use App\Http\Controllers\SettingController;
-use App\Http\Controllers\Admin\TransactionController;
-use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\Customer\CustomerController;
 use App\Http\Controllers\Customer\ChatController;
 
@@ -117,8 +117,9 @@ Route::middleware(['auth'])->group(function () {
 
         // Transactions Management
         Route::prefix('transactions')->name('transactions.')->group(function () {
-            Route::get('/', [TransactionController::class, 'index'])->name('index');
-            Route::get('/{transaction}', [TransactionController::class, 'show'])->name('show');
+            Route::get('/', [AdminTransactionController::class, 'index'])->name('index');
+            Route::get('/{transaction}', [AdminTransactionController::class, 'show'])->name('show');
+            Route::get('/{transaction}/print', [AdminTransactionController::class, 'print'])->name('print');
         });
 
         // Settings Management
@@ -139,6 +140,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/products/by-barcode', [PosController::class, 'scanBarcode'])->name('products.by-barcode');
         Route::get('/daily-sales', [PosController::class, 'dailySales'])->name('daily-sales');
         Route::post('/transaction', [PosController::class, 'processTransaction'])->name('transaction.store');
+        Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions');
+        Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
     });
 });
 
