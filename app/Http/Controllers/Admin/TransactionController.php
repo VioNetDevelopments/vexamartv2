@@ -11,36 +11,41 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Transaction::with(['user', 'customer', 'items.product']);
+        $query = Transaction::with(['customer', 'user', 'items']);
 
-        // Filters
+        // Filter by date range
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
+
         if ($request->filled('date_to')) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
+
+        // Filter by payment method
         if ($request->filled('payment_method')) {
             $query->where('payment_method', $request->payment_method);
         }
+
+        // Search by invoice or customer
         if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
-                $q->where('invoice_code', 'LIKE', "%{$request->search}%")
-                  ->orWhereHas('customer', function($q2) use ($request) {
-                      $q2->where('name', 'LIKE', "%{$request->search}%");
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('invoice_code', 'LIKE', "%{$search}%")
+                  ->orWhereHas('customer', function($cq) use ($search) {
+                      $cq->where('name', 'LIKE', "%{$search}%");
                   });
             });
         }
 
         $transactions = $query->latest()->paginate(20);
-        $customers = Customer::all();
 
-        return view('admin.transactions.index', compact('transactions', 'customers'));
+        return view('admin.transactions.index', compact('transactions'));
     }
 
     public function show(Transaction $transaction)
     {
-        $transaction->load(['user', 'customer', 'items.product']);
+        $transaction->load(['customer', 'user', 'items.product']);
         return view('admin.transactions.show', compact('transaction'));
     }
 

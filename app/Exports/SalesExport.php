@@ -52,8 +52,8 @@ class SalesExport implements FromCollection, WithHeadings, WithMapping, WithStyl
         return [
             $transaction->invoice_code,
             $transaction->created_at->format('d/m/Y H:i'),
-            $transaction->user->name,
-            $transaction->customer->name ?? 'Umum',
+            optional($transaction->user)->name ?? 'Unknown',
+            optional($transaction->customer)->name ?? 'Umum',
             $transaction->total_item,
             $transaction->subtotal,
             $transaction->discount,

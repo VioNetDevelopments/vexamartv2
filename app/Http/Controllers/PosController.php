@@ -9,6 +9,7 @@ use App\Models\CashDrawer;
 use App\Models\CashLog;
 use App\Models\Category;
 use App\Models\Customer;
+use App\Models\CashierNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -23,22 +24,22 @@ class PosController extends Controller
     {
         $categories = Category::where('is_active', true)->get();
         $customers = Customer::where('is_active', true)->get();
-
+        
         // Check if shift is open
         $shift = CashDrawer::where('user_id', Auth::id())
             ->where('status', 'open')
             ->latest()
             ->first();
-
+        
         // Daily sales summary
         $todaySales = Transaction::whereDate('created_at', today())
             ->where('payment_status', 'paid')
             ->sum('grand_total');
-
+        
         $todayTransactions = Transaction::whereDate('created_at', today())
             ->where('payment_status', 'paid')
             ->count();
-
+        
         return view('cashier.pos', compact('categories', 'customers', 'shift', 'todaySales', 'todayTransactions'));
     }
 
@@ -53,10 +54,10 @@ class PosController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function($q) use ($search) {
                 $q->where('name', 'LIKE', "%{$search}%")
-                    ->orWhere('sku', 'LIKE', "%{$search}%")
-                    ->orWhere('barcode', 'LIKE', "%{$search}%");
+                  ->orWhere('sku', 'LIKE', "%{$search}%")
+                  ->orWhere('barcode', 'LIKE', "%{$search}%");
             });
         }
 
@@ -112,20 +113,25 @@ class PosController extends Controller
         ]);
 
         DB::beginTransaction();
-
+        
         try {
-            // Generate invoice code
-            $invoiceCode = 'INV-' . date('Ymd') . '-' . str_pad(Transaction::whereDate('created_at', today())->count() + 1, 5, '0', STR_PAD_LEFT);
-
+            // Generate unique invoice code
+            $characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            $randomCode = '';
+            for ($i = 0; $i < 8; $i++) {
+                $randomCode .= $characters[random_int(0, strlen($characters) - 1)];
+            }
+            $invoiceCode = 'VMS-' . $randomCode;
+            
             // Calculate totals
-            $subtotal = collect($validated['items'])->sum(function ($item) {
+            $subtotal = collect($validated['items'])->sum(function($item) {
                 return $item['price'] * $item['qty'];
             });
-
+            
             $discount = $validated['discount'] ?? 0;
-            $tax = 0; // Add tax calculation if needed
+            $tax = 0;
             $grandTotal = $subtotal - $discount + $tax;
-
+            
             // Create transaction
             $transaction = Transaction::create([
                 'invoice_code' => $invoiceCode,
@@ -144,7 +150,7 @@ class PosController extends Controller
             // Create transaction items and update stock
             foreach ($validated['items'] as $item) {
                 $product = Product::findOrFail($item['product_id']);
-
+                
                 $transaction->items()->create([
                     'product_id' => $product->id,
                     'qty' => $item['qty'],
@@ -154,6 +160,42 @@ class PosController extends Controller
 
                 // Update stock
                 $product->decrement('stock', $item['qty']);
+            }
+
+            // Create notification for digital payments
+            if (in_array($validated['payment_method'], ['qris', 'debit', 'ewallet'])) {
+                CashierNotification::createPaymentNotification(Auth::id(), $transaction);
+            }
+
+            // ✅ UPDATE CUSTOMER POINTS & TOTAL SPENT
+            if ($validated['customer_id']) {
+                $customer = Customer::find($validated['customer_id']);
+                
+                if ($customer) {
+                    // Calculate points (1 point per Rp 1000)
+                    $points = floor($grandTotal / 1000);
+                    
+                    // Add points
+                    $customer->increment('loyalty_points', $points);
+                    
+                    // Update total spent
+                    $customer->increment('total_spent', $grandTotal);
+                    
+                    // Update last transaction
+                    $customer->update(['last_transaction_at' => now()]);
+                    
+                    // Auto-update membership
+                    $customer->updateMembership();
+                    
+                    // Log for debugging
+                    \Log::info("Customer points updated", [
+                        'customer_id' => $customer->id,
+                        'points_added' => $points,
+                        'new_points' => $customer->loyalty_points,
+                        'total_spent' => $customer->total_spent,
+                        'membership' => $customer->membership,
+                    ]);
+                }
             }
 
             DB::commit();
@@ -167,6 +209,8 @@ class PosController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error("Transaction error: " . $e->getMessage());
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
@@ -175,7 +219,210 @@ class PosController extends Controller
     }
 
     /**
-     * Hold transaction
+     * Stock Check (Read Only for Cashier)
+     */
+    public function stockCheck()
+    {
+        return view('cashier.pages.stock-check');
+    }
+
+    /**
+     * Get product stock info
+     */
+    public function getProductStock($productId)
+    {
+        $product = Product::with('category')->findOrFail($productId);
+
+        return response()->json([
+            'success' => true,
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'stock' => $product->stock,
+                'min_stock' => $product->min_stock,
+                'status' => $product->stock <= 0 ? 'out_of_stock' : ($product->stock <= $product->min_stock ? 'low_stock' : 'available')
+            ]
+        ]);
+    }
+
+    /**
+     * Stock Check Data API (AJAX)
+     */
+    public function stockCheckData(Request $request)
+    {
+        $perPage = $request->get('per_page', 6);
+        
+        $query = Product::with('category')
+            ->where('is_active', true)
+            ->orderBy('name');
+        
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('sku', 'LIKE', "%{$search}%");
+            });
+        }
+        
+        $products = $query->paginate($perPage);
+        
+        return response()->json($products);
+    }
+
+    /**
+     * Stock Stats API
+     */
+    public function stockStats()
+    {
+        $available = Product::where('is_active', true)
+            ->whereColumn('stock', '>', 'min_stock')
+            ->count();
+        
+        $low = Product::where('is_active', true)
+            ->whereColumn('stock', '<=', 'min_stock')
+            ->where('stock', '>', 0)
+            ->count();
+        
+        $out = Product::where('is_active', true)
+            ->where('stock', 0)
+            ->count();
+        
+        return response()->json([
+            'available' => $available,
+            'low' => $low,
+            'out' => $out
+        ]);
+    }
+
+    /**
+     * Held Transactions Page
+     */
+    public function heldTransactionsPage()
+    {
+        $heldTransactions = HeldTransaction::where('user_id', Auth::id())
+            ->latest()
+            ->paginate(20);
+        
+        return view('cashier.pages.held-transactions', compact('heldTransactions'));
+    }
+
+    /**
+     * Daily Sales Page
+     */
+    public function dailySalesPage()
+    {
+        $today = now();
+        
+        $salesByMethod = Transaction::whereDate('created_at', $today)
+            ->where('payment_status', 'paid')
+            ->selectRaw('payment_method, COUNT(*) as count, SUM(grand_total) as total')
+            ->groupBy('payment_method')
+            ->get();
+        
+        $totalSales = Transaction::whereDate('created_at', $today)
+            ->where('payment_status', 'paid')
+            ->sum('grand_total');
+        
+        $totalTransactions = Transaction::whereDate('created_at', $today)
+            ->where('payment_status', 'paid')
+            ->count();
+        
+        $hourlySales = Transaction::whereDate('created_at', $today)
+            ->where('payment_status', 'paid')
+            ->selectRaw('HOUR(created_at) as hour, SUM(grand_total) as total, COUNT(*) as count')
+            ->groupBy('hour')
+            ->orderBy('hour')
+            ->get();
+        
+        // Fill missing hours with 0
+        $completeHourlySales = collect(range(0, 23))->map(function($hour) use ($hourlySales) {
+            $existing = $hourlySales->firstWhere('hour', $hour);
+            return [
+                'hour' => $hour,
+                'total' => $existing->total ?? 0,
+                'count' => $existing->count ?? 0
+            ];
+        });
+        
+        return view('cashier.pages.daily-sales', compact(
+            'salesByMethod', 'totalSales', 'totalTransactions', 'completeHourlySales'
+        ));
+    }
+
+    /**
+     * Daily Sales API
+     */
+    public function dailySales()
+    {
+        $today = now();
+        
+        $totalSales = Transaction::whereDate('created_at', $today)
+            ->where('payment_status', 'paid')
+            ->sum('grand_total');
+        
+        $totalTransactions = Transaction::whereDate('created_at', $today)
+            ->where('payment_status', 'paid')
+            ->count();
+        
+        return response()->json([
+            'success' => true,
+            'total_sales' => $totalSales,
+            'total_transactions' => $totalTransactions,
+        ]);
+    }
+
+    /**
+     * Recent Transactions Page
+     */
+    public function recentTransactionsPage()
+    {
+        $transactions = Transaction::with(['customer', 'user', 'items.product'])
+            ->whereDate('created_at', today())
+            ->latest()
+            ->paginate(30);
+        
+        return view('cashier.pages.recent-transactions', compact('transactions'));
+    }
+
+    /**
+     * Get Notifications (API)
+     */
+    public function getNotifications()
+    {
+        $notifications = CashierNotification::where('user_id', Auth::id())
+            ->whereNull('read_at')
+            ->latest()
+            ->take(10)
+            ->get();
+        
+        $unreadCount = CashierNotification::where('user_id', Auth::id())
+            ->whereNull('read_at')
+            ->count();
+        
+        return response()->json([
+            'notifications' => $notifications,
+            'unread_count' => $unreadCount
+        ]);
+    }
+
+    /**
+     * Mark Notification as Read (API)
+     */
+    public function markNotificationAsRead(Request $request)
+    {
+        $notification = CashierNotification::where('id', $request->id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+        
+        $notification->markAsRead();
+        
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Hold current transaction
      */
     public function holdTransaction(Request $request)
     {
@@ -184,7 +431,6 @@ class PosController extends Controller
             'subtotal' => 'required|numeric',
             'discount' => 'nullable|numeric',
             'customer_id' => 'nullable|exists:customers,id',
-            'notes' => 'nullable|string',
         ]);
 
         $heldTransaction = HeldTransaction::create([
@@ -194,7 +440,6 @@ class PosController extends Controller
             'subtotal' => $validated['subtotal'],
             'discount' => $validated['discount'] ?? 0,
             'customer_id' => $validated['customer_id'] ?? null,
-            'notes' => $validated['notes'] ?? null,
         ]);
 
         return response()->json([
@@ -235,274 +480,15 @@ class PosController extends Controller
     }
 
     /**
-     * Void transaction
+     * Delete held transaction
      */
-    public function voidTransaction(Request $request)
+    public function deleteHeldTransaction($id)
     {
-        $validated = $request->validate([
-            'transaction_id' => 'required|exists:transactions,id',
-            'reason' => 'required|string|max:255',
-        ]);
-
-        $transaction = Transaction::findOrFail($validated['transaction_id']);
-
-        // Restore stock
-        foreach ($transaction->items as $item) {
-            $item->product->increment('stock', $item->qty);
-        }
-
-        // Update transaction status
-        $transaction->update([
-            'payment_status' => 'void',
-            'void_reason' => $validated['reason'],
-            'voided_at' => now(),
-            'voided_by' => Auth::id(),
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Transaksi berhasil dibatalkan'
-        ]);
-    }
-
-    /**
-     * Price override (requires admin/owner permission)
-     */
-    public function priceOverride(Request $request)
-    {
-        if (!in_array(Auth::user()->role, ['admin', 'owner'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tidak memiliki izin untuk mengubah harga'
-            ], 403);
-        }
-
-        $validated = $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'new_price' => 'required|numeric|min:0',
-        ]);
-
-        $product = Product::findOrFail($validated['product_id']);
-        $oldPrice = $product->sell_price;
-
-        $product->update(['sell_price' => $validated['new_price']]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Harga berhasil diubah',
-            'old_price' => $oldPrice,
-            'new_price' => $validated['new_price']
-        ]);
-    }
-
-    /**
-     * Stock check
-     */
-    public function stockCheck($productId)
-    {
-        $product = Product::with('category')->findOrFail($productId);
-
-        return response()->json([
-            'success' => true,
-            'product' => [
-                'id' => $product->id,
-                'name' => $product->name,
-                'sku' => $product->sku,
-                'stock' => $product->stock,
-                'min_stock' => $product->min_stock,
-                'status' => $product->stock <= 0 ? 'out_of_stock' : ($product->stock <= $product->min_stock ? 'low_stock' : 'available')
-            ]
-        ]);
-    }
-
-    /**
-     * Cash in/out
-     */
-    public function cashInOut(Request $request)
-    {
-        $validated = $request->validate([
-            'type' => 'required|in:in,out',
-            'amount' => 'required|numeric|min:0',
-            'reason' => 'required|string|max:255',
-            'notes' => 'nullable|string',
-        ]);
-
-        // Get open shift
-        $cashDrawer = CashDrawer::where('user_id', Auth::id())
-            ->where('status', 'open')
-            ->latest()
-            ->first();
-
-        if (!$cashDrawer) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Shift kasir belum dibuka'
-            ], 400);
-        }
-
-        // Create cash log
-        CashLog::create([
-            'user_id' => Auth::id(),
-            'cash_drawer_id' => $cashDrawer->id,
-            'type' => $validated['type'],
-            'amount' => $validated['amount'],
-            'reason' => $validated['reason'],
-            'notes' => $validated['notes'] ?? null,
-        ]);
-
-        // Update cash drawer
-        if ($validated['type'] === 'in') {
-            $cashDrawer->increment('cash_in', $validated['amount']);
-        } else {
-            $cashDrawer->increment('cash_out', $validated['amount']);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Kas ' . ($validated['type'] === 'in' ? 'masuk' : 'keluar') . ' berhasil dicatat'
-        ]);
-    }
-
-    /**
-     * Open shift
-     */
-    public function openShift(Request $request)
-    {
-        $validated = $request->validate([
-            'opening_balance' => 'required|numeric|min:0',
-        ]);
-
-        // Close any open shifts first
-        CashDrawer::where('user_id', Auth::id())
-            ->where('status', 'open')
-            ->update(['status' => 'closed']);
-
-        $cashDrawer = CashDrawer::create([
-            'user_id' => Auth::id(),
-            'opened_at' => now(),
-            'opening_balance' => $validated['opening_balance'],
-            'status' => 'open',
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Shift berhasil dibuka',
-            'shift' => $cashDrawer
-        ]);
-    }
-
-    /**
-     * Close shift
-     */
-    public function closeShift(Request $request)
-    {
-        $cashDrawer = CashDrawer::where('user_id', Auth::id())
-            ->where('status', 'open')
-            ->latest()
-            ->first();
-
-        if (!$cashDrawer) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tidak ada shift yang aktif'
-            ], 400);
-        }
-
-        $validated = $request->validate([
-            'closing_balance' => 'required|numeric|min:0',
-            'notes' => 'nullable|string',
-        ]);
-
-        // Calculate expected balance
-        $todaySales = Transaction::whereDate('created_at', today())
+        HeldTransaction::where('id', $id)
             ->where('user_id', Auth::id())
-            ->where('payment_method', 'cash')
-            ->where('payment_status', 'paid')
-            ->sum('grand_total');
+            ->delete();
 
-        $expectedBalance = $cashDrawer->opening_balance + $cashDrawer->cash_in - $cashDrawer->cash_out + $todaySales;
-
-        $cashDrawer->update([
-            'closed_at' => now(),
-            'closing_balance' => $validated['closing_balance'],
-            'expected_balance' => $expectedBalance,
-            'status' => 'closed',
-            'notes' => $validated['notes'] ?? null,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Shift berhasil ditutup',
-            'shift' => $cashDrawer,
-            'difference' => $validated['closing_balance'] - $expectedBalance
-        ]);
-    }
-
-    /**
-     * Shift summary
-     */
-    public function shiftSummary()
-    {
-        $shift = CashDrawer::where('user_id', Auth::id())
-            ->where('status', 'open')
-            ->latest()
-            ->first();
-
-        if (!$shift) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tidak ada shift yang aktif'
-            ], 404);
-        }
-
-        $todaySales = Transaction::whereDate('created_at', today())
-            ->where('user_id', Auth::id())
-            ->where('payment_method', 'cash')
-            ->where('payment_status', 'paid')
-            ->sum('grand_total');
-
-        $expectedBalance = $shift->opening_balance + $shift->cash_in - $shift->cash_out + $todaySales;
-
-        return response()->json([
-            'success' => true,
-            'shift' => $shift,
-            'today_sales' => $todaySales,
-            'expected_balance' => $expectedBalance,
-            'cash_logs' => CashLog::where('cash_drawer_id', $shift->id)
-                ->with('user')
-                ->latest()
-                ->get()
-        ]);
-    }
-
-    /**
-     * Daily sales summary
-     */
-    public function dailySales()
-    {
-        $today = Carbon::today();
-
-        $sales = Transaction::whereDate('created_at', $today)
-            ->where('payment_status', 'paid')
-            ->selectRaw('payment_method, COUNT(*) as count, SUM(grand_total) as total')
-            ->groupBy('payment_method')
-            ->get();
-
-        $totalSales = Transaction::whereDate('created_at', $today)
-            ->where('payment_status', 'paid')
-            ->sum('grand_total');
-
-        $totalTransactions = Transaction::whereDate('created_at', $today)
-            ->where('payment_status', 'paid')
-            ->count();
-
-        return response()->json([
-            'success' => true,
-            'date' => $today->format('d/m/Y'),
-            'sales' => $sales,
-            'total_sales' => $totalSales,
-            'total_transactions' => $totalTransactions,
-        ]);
+        return response()->json(['success' => true]);
     }
 
     /**
@@ -517,5 +503,21 @@ class PosController extends Controller
             'success' => true,
             'transaction' => $transaction
         ]);
+    }
+
+    /**
+     * Print Receipt
+     */
+    public function printReceipt($id)
+    {
+        $transaction = Transaction::with(['customer', 'user', 'items.product'])->findOrFail($id);
+        
+        // Get store settings from database
+        $storeName = \App\Models\Setting::get('store_name', config('app.name'));
+        $storeAddress = \App\Models\Setting::get('store_address', '');
+        $storePhone = \App\Models\Setting::get('store_phone', '');
+        $receiptFooter = \App\Models\Setting::get('receipt_footer', 'Terima kasih!');
+        
+        return view('cashier.receipt', compact('transaction', 'storeName', 'storeAddress', 'storePhone', 'receiptFooter'));
     }
 }

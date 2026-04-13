@@ -5,64 +5,53 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
-    /**
-     * Display a listing of customers
-     */
     public function index(Request $request)
     {
-        $query = Customer::query();
-
-        // Search
+        $query = Customer::query()->withCount('transactions');
+        
+        // Search filter
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                    ->orWhere('phone', 'LIKE', "%{$search}%")
-                    ->orWhere('email', 'LIKE', "%{$search}%");
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'LIKE', "%{$request->search}%")
+                  ->orWhere('phone', 'LIKE', "%{$request->search}%")
+                  ->orWhere('email', 'LIKE', "%{$request->search}%");
             });
         }
-
-        // Filter by membership
+        
+        // Membership filter
         if ($request->filled('membership')) {
             $query->where('membership', $request->membership);
         }
-
-        $customers = $query->withCount('transactions')->latest()->paginate(15);
-
-        // Summary stats
+        
+        $customers = $query->latest()->paginate(10);
+        
         $stats = [
             'total' => Customer::count(),
             'regular' => Customer::where('membership', 'regular')->count(),
             'gold' => Customer::where('membership', 'gold')->count(),
             'platinum' => Customer::where('membership', 'platinum')->count(),
         ];
-
+        
+        if ($request->ajax()) {
+            return view('admin.customers.partials.table', compact('customers'));
+        }
+        
         return view('admin.customers.index', compact('customers', 'stats'));
     }
 
-    /**
-     * Show customer details
-     */
     public function show(Customer $customer)
     {
-        $customer->load([
-            'transactions' => function ($q) {
-                $q->with('user')->latest()->take(10);
-            }
-        ]);
-
-        $stats = [
-            'total_transactions' => $customer->transactions()->count(),
-            'total_spent' => $customer->transactions()->sum('grand_total'),
-            'average_transaction' => $customer->transactions()->avg('grand_total'),
-            'last_purchase' => $customer->transactions()->latest()->first(),
-        ];
-
-        return view('admin.customers.show', compact('customer', 'stats'));
+        $customer->load(['transactions' => function($q) {
+            $q->with('items.product')->latest();
+        }]);
+        
+        // Paginate transactions - 5 per page
+        $transactions = $customer->transactions()->latest()->paginate(5);
+        
+        return view('admin.customers.show', compact('customer', 'transactions'));
     }
 
     /**
@@ -100,23 +89,41 @@ class CustomerController extends Controller
         return view('admin.customers.edit', compact('customer'));
     }
 
-    /**
-     * Update customer
-     */
     public function update(Request $request, Customer $customer)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255|unique:customers,email,' . $customer->id,
+            'email' => 'nullable|email|max:255',
             'address' => 'nullable|string',
-            'membership' => 'in:regular,gold,platinum',
+            'membership' => 'required|in:regular,gold,platinum',
         ]);
-
+        
         $customer->update($validated);
-
+        
         return redirect()->route('admin.customers.index')
-            ->with('success', 'Pelanggan berhasil diupdate!');
+            ->with('success', 'Data pelanggan berhasil diupdate');
+    }
+
+    // Add method to manually adjust points
+    public function adjustPoints(Request $request, Customer $customer)
+    {
+        $validated = $request->validate([
+            'points' => 'required|integer',
+            'reason' => 'nullable|string|max:255',
+        ]);
+        
+        if ($validated['points'] > 0) {
+            $customer->addPoints($validated['points']);
+            $message = "Berhasil menambahkan {$validated['points']} poin";
+        } else {
+            $customer->deductPoints(abs($validated['points']));
+            $message = "Berhasil mengurangi " . abs($validated['points']) . " poin";
+        }
+        
+        // Log the adjustment (optional - create point_logs table)
+        
+        return redirect()->back()->with('success', $message);
     }
 
     /**
@@ -124,10 +131,30 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
-        $customer->delete();
-
-        return redirect()->route('admin.customers.index')
-            ->with('success', 'Pelanggan berhasil dihapus!');
+        try {
+            $customerName = $customer->name;
+            $customer->delete();
+            
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Pelanggan {$customerName} berhasil dihapus"
+                ]);
+            }
+            
+            return redirect()->route('admin.customers.index')
+                ->with('success', "Pelanggan {$customerName} berhasil dihapus");
+        } catch (\Exception $e) {
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus pelanggan. Pastikan pelanggan tidak memiliki transaksi aktif.'
+                ], 400);
+            }
+            
+            return redirect()->route('admin.customers.index')
+                ->with('error', 'Gagal menghapus pelanggan. Pastikan pelanggan tidak memiliki transaksi aktif.');
+        }
     }
 
     /**

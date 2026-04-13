@@ -1,384 +1,335 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" :class="{ 'dark': isDark }" x-data="{ 
-          sidebarOpen: true, 
-          isDark: localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
-          toggleTheme() {
-              this.isDark = !this.isDark;
-              localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
-          }
-      }" class="antialiased">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>VexaMart - POS System</title>
+    <title>{{ config('app.name', 'VexaMart') }} - {{ $title ?? 'POS System' }}</title>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800,900" rel="stylesheet" />
+
+    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Vite -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <style>
-        [x-cloak] { display: none !important; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+        [x-cloak] {
+            display: none !important;
+        }
+
+        /* Performance: Prevent layout shift */
+        [data-lucide] {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            vertical-align: middle;
+        }
+
+        /* Icon sizes */
+        .icon-sm {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        .icon-md {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-navy-950 dark:text-slate-100 font-sans overflow-hidden">
 
-    <div class="flex h-screen w-full" x-data="{ mobileMenuOpen: false }">
-        
-        <!-- Overlay Mobile -->
-        <div x-show="mobileMenuOpen" 
-             @click="mobileMenuOpen = false"
-             class="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"></div>
+<body class="bg-slate-50 dark:bg-navy-950 font-inter antialiased" x-data="{ 
+          darkMode: localStorage.getItem('darkMode') === 'true',
+          sidebarOpen: localStorage.getItem('sidebarOpen') !== 'false',
+          userMenuOpen: false,
+          toggleDarkMode() {
+              this.darkMode = !this.darkMode;
+              localStorage.setItem('darkMode', this.darkMode);
+          },
+          toggleSidebar() {
+              this.sidebarOpen = !this.sidebarOpen;
+              localStorage.setItem('sidebarOpen', this.sidebarOpen);
+          }
+      }" x-init="$watch('darkMode', value => {
+          if (value) {
+              document.documentElement.classList.add('dark');
+              localStorage.setItem('darkMode', 'true');
+          } else {
+              document.documentElement.classList.remove('dark');
+              localStorage.setItem('darkMode', 'false');
+          }
+      });
+      if (darkMode) {
+          document.documentElement.classList.add('dark');
+      }">
 
-        <!-- SIDEBAR -->
-        <aside :class="sidebarOpen ? 'w-64' : 'w-20'" 
-               class="fixed inset-y-0 left-0 z-50 flex flex-col bg-navy-900 border-r border-white/[0.05] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] lg:static lg:inset-0 shadow-[4px_0_24px_rgba(0,0,0,0.3)] overflow-hidden">
-            
-          <!-- Logo Section - Dynamic from Database -->
-<div class="flex h-16 items-center justify-between px-6 border-b border-white/5">
-    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 overflow-hidden">
-        <!-- Dynamic Logo -->
-        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30 flex-shrink-0 overflow-hidden" id="sidebarLogo">
-            @php
-                $logo = \App\Models\Setting::get('store_logo');
-            @endphp
-            @if($logo && Storage::disk('public')->exists($logo))
-                <img src="{{ asset('storage/' . $logo) }}" alt="Logo" class="w-full h-full object-cover rounded-xl">
-            @else
-                <i data-lucide="shopping-bag" class="h-5 w-5"></i>
-            @endif
-        </div>
-        <div class="flex flex-col min-w-0 flex-1">
-            <span x-show="sidebarOpen" class="text-base font-bold text-white transition-opacity duration-300 truncate" id="sidebarStoreName">
-                {{ \App\Models\Setting::get('store_name', 'VexaMart') }}
-            </span>
-            <span x-show="sidebarOpen" class="text-[10px] text-slate-400 transition-opacity duration-300 truncate" id="sidebarTagline">
-                {{ \App\Models\Setting::get('store_tagline', 'Solusi Belanja Modern') }}
-            </span>
-        </div>
-    </a>
-</div>
-            <!-- Navigation Section -->
-            <div class="flex-1 overflow-y-auto px-4 py-6 space-y-8 custom-scrollbar">
-                @php
-    $menuGroups = [
-        'MENU UTAMA' => [
-            ['name' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => route('admin.dashboard'), 'role' => ['owner', 'admin']],
-            ['name' => 'Kasir (POS)', 'icon' => 'monitor-smartphone', 'route' => route('cashier.pos'), 'role' => ['cashier', 'admin', 'owner']],
-        ],
-        'MANAJEMEN' => [
-            ['name' => 'Produk', 'icon' => 'package', 'route' => route('admin.products.index'), 'role' => ['owner', 'admin']],
-            ['name' => 'Transaksi', 'icon' => 'receipt', 'route' => route('admin.transactions.index'), 'role' => ['owner', 'admin']],
-            ['name' => 'Stok', 'icon' => 'warehouse', 'route' => route('admin.stock.index'), 'role' => ['owner', 'admin']],
-            ['name' => 'Pelanggan', 'icon' => 'users', 'route' => route('admin.customers.index'), 'role' => ['owner', 'admin']],
-            ['name' => 'User', 'icon' => 'user-cog', 'route' => route('admin.users.index'), 'role' => ['owner', 'admin']],
-        ],
-        'ANALITIK' => [
-            ['name' => 'Laporan', 'icon' => 'bar-chart-3', 'route' => route('admin.reports.index'), 'role' => ['owner', 'admin']],
-            ['name' => 'Activity Log', 'icon' => 'activity', 'route' => route('admin.activity-logs'), 'role' => ['owner', 'admin']],
-        ],
-        'SISTEM' => [
-            ['name' => 'Pengaturan', 'icon' => 'settings', 'route' => route('admin.settings.index'), 'role' => ['owner', 'admin']],
-        ]
-    ];
+    <!-- Sidebar (Fully Toggleable) -->
+    <aside id="sidebar"
+        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+        class="fixed left-0 top-0 h-full w-64 bg-white dark:bg-navy-950 border-r border-slate-200 dark:border-white/5 z-50 transition-transform duration-300 ease-in-out">
 
-    $userRole = auth()->user()->role;
-@endphp
-
-                @foreach($menuGroups as $group => $items)
-                    @php
-                        $hasVisibleItems = false;
-                        foreach($items as $item) {
-                            if(in_array($userRole, $item['role'])) $hasVisibleItems = true;
-                        }
-                    @endphp
-
-                    @if($hasVisibleItems)
-                        <div class="space-y-2">
-                            <div x-show="sidebarOpen" x-transition class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">
-                                {{ $group }}
-                            </div>
-                            <div class="space-y-1.5">
-                                @foreach($items as $item)
-                                    @if(in_array($userRole, $item['role']))
-                                        @php
-                                            $isActive = request()->is(parse_url($item['route'], PHP_URL_PATH) . '*');
-                                        @endphp
-                                        <a href="{{ $item['route'] }}" 
-                                           class="group relative flex items-center gap-3.5 rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-300 
-                                                  {{ $isActive 
-                                                      ? 'bg-accent-500/10 text-white border border-white/10 shadow-[0_0_20px_rgba(37,99,235,0.15)]' 
-                                                      : 'text-slate-400 hover:text-white hover:bg-white/[0.05] hover:translate-x-1' }}">
-                                            
-                                            <!-- Active Background Glow -->
-                                            @if($isActive)
-                                                <div class="absolute inset-0 bg-accent-500/5 rounded-2xl blur-sm"></div>
-                                                <div class="absolute left-0 top-1/4 bottom-1/4 w-1 bg-gradient-to-b from-accent-400 to-accent-600 rounded-full shadow-[0_0_8px_rgba(37,99,235,0.6)]"></div>
-                                            @endif
-
-                                            <i data-lucide="{{ $item['icon'] }}" 
-                                               class="h-5 w-5 shrink-0 transition-transform duration-300 group-hover:scale-110 {{ $isActive ? 'text-accent-400' : 'text-slate-500 group-hover:text-white' }}"></i>
-                                            
-                                            <span x-show="sidebarOpen" class="whitespace-nowrap transition-all duration-300">{{ $item['name'] }}</span>
-                                            
-                                            @if($isActive && $isActive)
-                                                <div x-show="sidebarOpen" class="ml-auto flex items-center justify-center">
-                                                    <div class="w-1.5 h-1.5 rounded-full bg-accent-500 shadow-[0_0_8px_rgba(37,99,235,0.8)] animate-pulse"></div>
-                                                </div>
-                                            @endif
-                                        </a>
-                                    @endif
-                                @endforeach
-                            </div>
-                        </div>
+        <!-- Sidebar Header -->
+        <div class="flex items-center justify-between p-6 border-b border-slate-200 dark:border-white/10">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-lg shadow-accent-500/20 flex-shrink-0 overflow-hidden">
+                    @if(isset($settings['store_logo']) && $settings['store_logo'])
+                        <img src="{{ asset('storage/' . $settings['store_logo']) }}" alt="Logo"
+                            class="w-full h-full object-cover">
+                    @else
+                        <i data-lucide="shopping-bag" class="w-5 h-5 text-white"></i>
                     @endif
-                @endforeach
+                </div>
+                <div class="overflow-hidden">
+                    <h1
+                        class="text-lg font-black bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent leading-tight whitespace-nowrap">
+                        {{ $settings['store_name'] ?? 'VEXALYN STORE' }}
+                    </h1>
+                    <p class="text-[10px] font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                        {{ $settings['company_name'] ?? 'VIO ATMAJAYA' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Menu -->
+        <nav class="p-4 space-y-1 overflow-y-auto" style="height: calc(100% - 140px);">
+            <!-- Menu Utama -->
+            <div class="mb-6">
+                <p class="px-3 mb-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                    Menu Utama</p>
+
+                <a href="{{ route('admin.dashboard') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.dashboard') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                    <i data-lucide="layout-dashboard"
+                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.dashboard') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
+                    <span class="text-sm font-bold whitespace-nowrap">Dashboard</span>
+                </a>
+
+                <a href="{{ route('cashier.pos') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('cashier.pos') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                    <i data-lucide="monitor-smartphone"
+                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('cashier.pos') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
+                    <span class="text-sm font-bold whitespace-nowrap">Kasir (POS)</span>
+                </a>
             </div>
 
-        </aside>
+            <!-- Manajemen -->
+            <div class="mb-6">
+                <p class="px-3 mb-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                    Manajemen</p>
 
-        <!-- MAIN CONTENT -->
-        <div class="flex flex-1 flex-col overflow-hidden">
-            
-            <!-- TOPBAR -->
-            <header class="relative z-[50] flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-6 backdrop-blur-md dark:border-white/5 dark:bg-navy-900/80">
-                
-                <!-- Left -->
-                <div class="flex items-center gap-4">
-                    <button @click="sidebarOpen = !sidebarOpen" 
-                            class="group relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white/50 text-slate-600 shadow-sm transition-all duration-500 hover:border-accent-500 hover:text-accent-600 hover:shadow-md hover:shadow-accent-500/10 dark:border-white/5 dark:bg-navy-800/50 dark:text-slate-400 dark:hover:border-accent-500/50 dark:hover:text-accent-400">
-                        <div class="absolute inset-0 rounded-xl bg-accent-500/5 opacity-0 transition-opacity group-hover:opacity-100"></div>
-                        <i data-lucide="panel-left" 
-                           class="relative z-10 h-5 w-5 transition-transform duration-500" 
-                           :class="sidebarOpen ? '' : 'rotate-180'"></i>
+                <a href="{{ route('admin.products.index') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.products.*') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                    <i data-lucide="box"
+                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.products.*') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
+                    <span class="text-sm font-bold whitespace-nowrap">Produk</span>
+                </a>
+
+                <a href="{{ route('admin.transactions.index') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.transactions.*') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                    <i data-lucide="receipt"
+                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.transactions.*') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
+                    <span class="text-sm font-bold whitespace-nowrap">Transaksi</span>
+                </a>
+
+                <a href="{{ route('admin.stock.index') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.stock.*') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                    <i data-lucide="warehouse"
+                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.stock.*') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
+                    <span class="text-sm font-bold whitespace-nowrap">Stok</span>
+                </a>
+
+                <a href="{{ route('admin.customers.index') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.customers.*') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                    <i data-lucide="users"
+                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.customers.*') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
+                    <span class="text-sm font-bold whitespace-nowrap">Pelanggan</span>
+                </a>
+
+                <a href="{{ route('admin.reports.index') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.reports.*') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                    <i data-lucide="bar-chart-3"
+                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.reports.*') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
+                    <span class="text-sm font-bold whitespace-nowrap">Laporan</span>
+                </a>
+            </div>
+
+            <!-- Pengaturan -->
+            <div class="mb-6">
+                <p class="px-3 mb-2 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                    Pengaturan</p>
+
+                <a href="{{ route('admin.settings.index') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.settings.*') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                    <i data-lucide="settings"
+                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.settings.*') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
+                    <span class="text-sm font-bold whitespace-nowrap">Pengaturan Toko</span>
+                </a>
+
+                <a href="{{ route('admin.users.index') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.users.*') ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-900' }}">
+                    <i data-lucide="user-cog"
+                        class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('admin.users.*') ? 'text-white' : 'text-slate-400 group-hover:text-accent-500' }}"></i>
+                    <span class="text-sm font-bold whitespace-nowrap">User</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- User Profile -->
+        <div
+            class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-navy-950">
+            <div class="flex items-center gap-3 px-3 py-2 rounded-xl">
+                <div
+                    class="w-10 h-10 rounded-full bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center text-white font-bold shadow-lg shadow-accent-500/30 flex-shrink-0">
+                    {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                </div>
+                <div class="flex-1 min-w-0 overflow-hidden">
+                    <p class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ auth()->user()->name }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 capitalize">{{ auth()->user()->role }}</p>
+                </div>
+                <form method="POST" action="{{ route('logout') }}" class="inline">
+                    @csrf
+                    <button type="submit" class="p-2 text-slate-400 hover:text-danger transition-colors" title="Logout">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
                     </button>
-                    
-                    <!-- Search -->
-                    <div class="relative hidden md:block" x-data="{ 
-                        search: '', 
-                        results: [], 
-                        loading: false,
-                        showResults: false,
-                        async performSearch() {
-                            if (this.search.length < 2) {
-                                this.results = [];
-                                this.showResults = false;
-                                return;
-                            }
-                            this.loading = true;
-                            this.showResults = true;
-                            try {
-                                const response = await fetch(`/admin/search?q=${encodeURIComponent(this.search)}`);
-                                this.results = await response.json();
-                                // Re-initialize icons for new results
-                                this.$nextTick(() => {
-                                    if (window.lucide) window.lucide.createIcons();
-                                });
-                            } catch (e) {
-                                console.error(e);
-                            } finally {
-                                this.loading = false;
-                            }
-                        }
-                    }">
-                        <div class="relative group">
-                            <i data-lucide="search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-accent-500 transition-colors"></i>
-                            <input type="text" 
-                                   x-model="search"
-                                   @input.debounce.300ms="performSearch()"
-                                   @focus="if(results.length > 0) showResults = true"
-                                   @keydown.escape="showResults = false"
-                                   @click.away="showResults = false"
-                                   placeholder="Cari produk, transaksi..." 
-                                   class="h-10 w-64 rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 focus:bg-white transition-all dark:border-white/10 dark:bg-navy-800 dark:text-white">
-                        </div>
-                               
-                        <!-- Search Results Dropdown -->
-                        <div x-show="showResults" 
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0 translate-y-2"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 translate-y-2"
-                             class="absolute top-full left-0 mt-3 w-80 bg-white dark:bg-navy-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-white/10 overflow-hidden z-[100]"
-                             style="display: none;">
-                            
-                            <div class="p-3 max-h-[400px] overflow-y-auto custom-scrollbar">
-                                <template x-if="loading">
-                                    <div class="py-10 text-center">
-                                        <div class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-accent-500 border-t-transparent"></div>
-                                        <p class="mt-2 text-xs text-slate-500">Mencari...</p>
-                                    </div>
-                                </template>
-                                
-                                <template x-if="!loading && results.length === 0">
-                                    <div class="py-10 text-center">
-                                        <i data-lucide="search-x" class="h-8 w-8 text-slate-300 mx-auto mb-2"></i>
-                                        <p class="text-sm text-slate-500">Hasil tidak ditemukan</p>
-                                    </div>
-                                </template>
+                </form>
+            </div>
+        </div>
+    </aside>
 
-                                <div class="space-y-1">
-                                    <template x-for="item in results" :key="item.type + '-' + item.id">
-                                        <a :href="item.url" class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
-                                            <div class="h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0" 
-                                                 :class="item.type === 'product' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' : 'bg-purple-50 text-purple-600 dark:bg-purple-900/20'">
-                                                <i :data-lucide="item.type === 'product' ? 'package' : 'receipt'" class="h-5 w-5"></i>
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-semibold text-navy-900 dark:text-white truncate" x-text="item.title"></p>
-                                                <p class="text-xs text-slate-500 truncate" x-text="item.subtitle"></p>
-                                            </div>
-                                            <i data-lucide="chevron-right" class="h-4 w-4 text-slate-300 group-hover:text-accent-500 transition-colors"></i>
-                                        </a>
-                                    </template>
-                                </div>
-                            </div>
+    <!-- Main Content Area -->
+    <div :class="sidebarOpen ? 'ml-64' : 'ml-0'" class="transition-all duration-300 ease-in-out">
+        <!-- Top Header Bar -->
+        <header
+            class="sticky top-0 z-30 bg-white/80 dark:bg-navy-950/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5">
+            <div class="flex items-center justify-between px-6 py-4">
+                <!-- Left: Hamburger Menu + Store Name -->
+                <div class="flex items-center gap-4">
+                    <!-- Hamburger Menu Button -->
+                    <button @click="toggleSidebar()"
+                        class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-900 transition-colors text-slate-400 hover:text-accent-500">
+                        <i data-lucide="menu" class="icon-md"></i>
+                    </button>
 
-                            <div x-show="results.length > 0" class="p-2 border-t border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/5">
-                                <p class="text-[10px] text-center text-slate-400">Tekan ESC untuk menutup</p>
-                            </div>
-                        </div>
+                    <!-- Store Name (Gradient Text) -->
+                    <div class="flex items-center gap-3">
+                        <h2
+                            class="text-xl font-black bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent">
+                            {{ $settings['store_name'] ?? 'VEXALYN STORE' }}
+                        </h2>
                     </div>
                 </div>
 
-                <!-- Right -->
+                <!-- Right: Actions -->
                 <div class="flex items-center gap-3">
-                    <!-- Theme Toggle -->
-                    <button @click="toggleTheme()" class="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-accent-500 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-yellow-400">
-                        <i x-show="!isDark" data-lucide="sun" class="h-5 w-5"></i>
-                        <i x-show="isDark" data-lucide="moon" class="h-5 w-5"></i>
+                    <!-- Dark Mode Toggle -->
+                    <button @click="toggleDarkMode()"
+                        class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-900 transition-colors relative">
+                        <i data-lucide="sun" x-show="!darkMode" x-cloak class="icon-sm text-yellow-500"></i>
+                        <i data-lucide="moon" x-show="darkMode" x-cloak
+                            class="icon-sm text-slate-600 dark:text-slate-400"></i>
                     </button>
 
                     <!-- Notifications -->
-                    <button class="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-accent-500 dark:text-slate-400 dark:hover:bg-white/10">
-                        <i data-lucide="bell" class="h-5 w-5"></i>
-                        <span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger animate-pulse"></span>
+                    <button
+                        class="relative p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-900 transition-colors">
+                        <i data-lucide="bell" class="icon-sm text-slate-600 dark:text-slate-400"></i>
+                        <span
+                            class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse border border-white dark:border-navy-950"></span>
                     </button>
 
-                    <!-- Profile Dropdown - Perbaiki z-index -->
-                    <div class="relative" x-data="{ open: false }" style="z-index: 60;">
-                        <button @click="open = !open" @click.outside="open = false" 
-                                class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-2 shadow-sm hover:border-accent-500 hover:shadow-md transition-all dark:border-white/10 dark:bg-navy-800">
-                            <!-- Avatar dengan Online Status -->
-                            <div class="relative">
-                                <div class="h-9 w-9 rounded-full bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center text-white font-semibold">
-                                    {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
-                                </div>
-                                <!-- Online Status Dot -->
-                                <span class="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-white dark:border-navy-800 animate-pulse"></span>
+                    <!-- User Dropdown -->
+                    <div class="relative">
+                        <button @click="userMenuOpen = !userMenuOpen" @click.away="userMenuOpen = false"
+                            class="flex items-center gap-3 p-2 pr-4 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-900 transition-colors cursor-pointer">
+                            <div
+                                class="w-10 h-10 rounded-full bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-lg shadow-accent-500/30">
+                                {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                             </div>
-                            
-                            <div class="hidden lg:block text-left">
-                                <p class="text-sm font-semibold text-navy-900 dark:text-white">{{ auth()->user()->name }}</p>
-                                <p class="text-xs text-slate-500 capitalize">{{ auth()->user()->role }}</p>
+                            <div class="text-left hidden sm:block overflow-hidden">
+                                <p class="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                    {{ auth()->user()->name }}
+                                </p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 capitalize truncate">
+                                    {{ auth()->user()->role }}
+                                </p>
                             </div>
-                            
-                            <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400"></i>
+                            <i data-lucide="chevron-down" x-show="!userMenuOpen" x-cloak
+                                class="w-4 h-4 text-slate-400 flex-shrink-0"></i>
+                            <i data-lucide="chevron-up" x-show="userMenuOpen" x-cloak
+                                class="w-4 h-4 text-slate-400 flex-shrink-0"></i>
                         </button>
-                        
-                        <!-- Dropdown Menu - Perbaiki positioning -->
-                        <div x-show="open" 
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0 scale-95 translate-y-2"
-                             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-                             class="absolute right-0 mt-2 w-72 origin-top-right rounded-2xl bg-white p-3 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-navy-800 dark:ring-white/10"
-                             style="display: none; z-index: 70;">
-                            
-                            <!-- User Info Card -->
-                            <div class="mb-3 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 p-4 text-white">
-                                <div class="flex items-center gap-3">
-                                    <div class="relative">
-                                        <div class="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-lg">
-                                            {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
-                                        </div>
-                                        <span class="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-success border-2 border-accent-500"></span>
-                                    </div>
-                                    <div class="flex-1">
-                                        <p class="font-semibold">{{ auth()->user()->name }}</p>
-                                        <p class="text-xs text-accent-100">{{ auth()->user()->email }}</p>
-                                    </div>
-                                </div>
-                                <div class="mt-3 flex items-center gap-2 text-xs">
-                                    <span class="flex items-center gap-1 rounded-full bg-white/20 px-2 py-1">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-success animate-pulse"></span>
-                                        Online
-                                    </span>
-                                    <span class="text-accent-100">Last login: {{ now()->format('H:i') }}</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Menu Items -->
-                            <a href="#" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-accent-50 hover:text-accent-600 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-accent-400 transition-colors">
-                                <i data-lucide="user" class="h-4 w-4"></i>
-                                <span>Profil</span>
+
+                        <!-- Dropdown Menu -->
+                        <div x-show="userMenuOpen" x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                            class="absolute right-0 mt-2 w-56 bg-white dark:bg-navy-900 rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 py-2 z-50"
+                            x-cloak>
+
+                            <a href="#"
+                                class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors">
+                                <i data-lucide="user" class="w-4 h-4 text-slate-400"></i>
+                                <span class="text-slate-700 dark:text-slate-300">Profil</span>
                             </a>
-                            <a href="{{ route('admin.settings.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-accent-50 hover:text-accent-600 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-accent-400 transition-colors">
-                                <i data-lucide="settings" class="h-4 w-4"></i>
-                                <span>Pengaturan</span>
+                            <a href="{{ route('admin.settings.index') }}"
+                                class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors">
+                                <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>
+                                <span class="text-slate-700 dark:text-slate-300">Pengaturan</span>
                             </a>
-                            <a href="#" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-accent-50 hover:text-accent-600 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-accent-400 transition-colors">
-                                <i data-lucide="help-circle" class="h-4 w-4"></i>
-                                <span>Bantuan</span>
-                            </a>
-                            
-                            <div class="my-2 border-t border-slate-100 dark:border-white/10"></div>
-                            
-                            <form method="POST" action="{{ route('logout') }}" class="block">
+
+                            <div class="border-t border-slate-200 dark:border-white/10 my-1"></div>
+
+                            <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button type="submit" class="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-danger hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                                    <i data-lucide="log-out" class="h-4 w-4"></i>
+                                <button type="submit"
+                                    class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-danger hover:bg-danger/5 transition-colors">
+                                    <i data-lucide="log-out" class="w-4 h-4"></i>
                                     <span>Logout</span>
                                 </button>
                             </form>
                         </div>
                     </div>
                 </div>
-            </header>
+            </div>
+        </header>
 
-            <!-- MAIN CONTENT AREA -->
-            <main class="flex-1 overflow-y-auto bg-slate-50 p-6 dark:bg-navy-950">
-                @yield('content')
-            </main>
-        </div>
+        <!-- Page Content -->
+        <main class="p-6">
+            @yield('content')
+        </main>
     </div>
 
-   <script>
-// Auto-update sidebar when settings change
-document.addEventListener('DOMContentLoaded', function() {
-    // Listen for settings update event
-    window.addEventListener('settingsUpdated', function(e) {
-        const data = e.detail;
-        
-        // Update sidebar logo
-        if (data.logo_url) {
-            const logoContainer = document.getElementById('sidebarLogo');
-            if (logoContainer) {
-                logoContainer.innerHTML = `<img src="${data.logo_url}" alt="Logo" class="w-full h-full object-cover rounded-xl">`;
-            }
-        }
-        
-        // Update sidebar store name
-        if (data.store_name) {
-            const storeName = document.getElementById('sidebarStoreName');
-            if (storeName) {
-                storeName.textContent = data.store_name;
-            }
-        }
-    });
-});
-</script>
-    
+    <!-- Initialize Icons Once -->
+    <script>
+        // Initialize icons on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            // Small delay to ensure DOM is ready
+            setTimeout(() => {
+                lucide.createIcons();
+            }, 100);
+        });
+
+        // Re-init icons when Alpine updates
+        document.addEventListener('alpine:initialized', () => {
+            setTimeout(() => {
+                lucide.createIcons();
+            }, 200);
+        });
+    </script>
     @stack('scripts')
 </body>
+
 </html>

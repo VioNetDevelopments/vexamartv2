@@ -45,7 +45,10 @@
                                         Nama Produk <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" name="name" value="{{ old('name') }}" required
-                                           class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white @error('name') border-danger @enderror"
+                                           @class([
+                                               'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white',
+                                               'border-danger' => $errors->has('name'),
+                                           ])
                                            placeholder="Masukkan nama produk">
                                     @error('name')
                                         <p class="mt-1 text-xs text-danger">{{ $message }}</p>
@@ -56,7 +59,10 @@
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Deskripsi</label>
                                     <textarea name="description" rows="3" 
-                                              class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white @error('description') border-danger @enderror"
+                                              @class([
+                                                  'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white',
+                                                  'border-danger' => $errors->has('description'),
+                                              ])
                                               placeholder="Deskripsi produk (opsional)">{{ old('description') }}</textarea>
                                     @error('description')
                                         <p class="mt-1 text-xs text-danger">{{ $message }}</p>
@@ -69,7 +75,10 @@
                                         Kategori <span class="text-danger">*</span>
                                     </label>
                                     <select name="category_id" required
-                                            class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white @error('category_id') border-danger @enderror">
+                                            @class([
+                                                'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white',
+                                                'border-danger' => $errors->has('category_id'),
+                                            ])>
                                         <option value="">Pilih Kategori</option>
                                         @foreach($categories as $cat)
                                             <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>
@@ -100,7 +109,10 @@
                                     <div class="relative">
                                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">Rp</span>
                                         <input type="number" name="buy_price" value="{{ old('buy_price') }}" required min="0"
-                                               class="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white @error('buy_price') border-danger @enderror">
+                                               @class([
+                                                   'w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white',
+                                                   'border-danger' => $errors->has('buy_price'),
+                                               ])>
                                     </div>
                                     @error('buy_price')
                                         <p class="mt-1 text-xs text-danger">{{ $message }}</p>
@@ -115,7 +127,10 @@
                                     <div class="relative">
                                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">Rp</span>
                                         <input type="number" name="sell_price" value="{{ old('sell_price') }}" required min="0"
-                                               class="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white @error('sell_price') border-danger @enderror">
+                                               @class([
+                                                   'w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white',
+                                                   'border-danger' => $errors->has('sell_price'),
+                                               ])>
                                     </div>
                                     @error('sell_price')
                                         <p class="mt-1 text-xs text-danger">{{ $message }}</p>
@@ -128,7 +143,10 @@
                                         Stok Awal <span class="text-danger">*</span>
                                     </label>
                                     <input type="number" name="stock" value="{{ old('stock', 0) }}" required min="0"
-                                           class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white @error('stock') border-danger @enderror">
+                                           @class([
+                                               'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white',
+                                               'border-danger' => $errors->has('stock'),
+                                           ])>
                                     @error('stock')
                                         <p class="mt-1 text-xs text-danger">{{ $message }}</p>
                                     @enderror
@@ -140,7 +158,10 @@
                                         Stok Minimum <span class="text-danger">*</span>
                                     </label>
                                     <input type="number" name="min_stock" value="{{ old('min_stock', 5) }}" required min="0"
-                                           class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white @error('min_stock') border-danger @enderror">
+                                           @class([
+                                               'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white',
+                                               'border-danger' => $errors->has('min_stock'),
+                                           ])>
                                     @error('min_stock')
                                         <p class="mt-1 text-xs text-danger">{{ $message }}</p>
                                     @enderror
@@ -168,7 +189,10 @@
                                     </div>
                                     <input type="text" name="sku" x-ref="sku" value="{{ old('sku') }}" 
                                            :readonly="generateSKU"
-                                           class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-mono focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white @error('sku') border-danger @enderror"
+                                           @class([
+                                               'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-mono focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white',
+                                               'border-danger' => $errors->has('sku'),
+                                           ])
                                            placeholder="SKU-XXXXXXXX">
                                     @error('sku')
                                         <p class="mt-1 text-xs text-danger">{{ $message }}</p>
@@ -186,7 +210,10 @@
                                     </div>
                                     <input type="text" name="barcode" x-ref="barcode" value="{{ old('barcode') }}" 
                                            :readonly="generateBarcode"
-                                           class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-mono focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white @error('barcode') border-danger @enderror"
+                                           @class([
+                                               'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-mono focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white',
+                                               'border-danger' => $errors->has('barcode'),
+                                           ])
                                            placeholder="899XXXXXXXXX">
                                     @error('barcode')
                                         <p class="mt-1 text-xs text-danger">{{ $message }}</p>

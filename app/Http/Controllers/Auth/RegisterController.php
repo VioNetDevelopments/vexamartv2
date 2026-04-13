@@ -4,34 +4,40 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Validator;
 
 class RegisterController extends Controller
 {
-    public function register(Request $request)
+    protected function validator(array $data)
     {
-        $validated = $request->validate([
+        return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'terms' => ['accepted'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
+    }
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'password' => Hash::make($validated['password']),
-            'role' => 'owner',
+    protected function create(array $data)
+    {
+        // FIXED: Set default role to 'cashier' instead of 'owner'
+        return User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'role' => 'cashier', // ← FIXED: Changed from 'owner' to 'cashier'
         ]);
+    }
 
-        Auth::login($user);
+    public function register(Request $request)
+    {
+        $this->validator($request->all())->validate();
 
-        return redirect()->route('admin.dashboard')
-            ->with('success', 'Akun berhasil dibuat! Selamat datang di VexaMart.');
+        event(new Registered($user = $this->create($request->all())));
+
+        // Customer creation is handled by the Registered event listener
+        return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login.');
     }
 }

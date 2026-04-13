@@ -9,19 +9,25 @@
                 <i data-lucide="receipt" class="w-7 h-7 text-white"></i>
             </div>
             <div>
-                <h1 class="text-3xl font-black text-navy-900 dark:text-white tracking-tight">Riwayat Transaksi</h1>
+                <h1 class="text-3xl font-black bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent tracking-tight">Riwayat Transaksi</h1>
                 <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total <span class="text-accent-500 font-bold">{{ $transactions->total() }}</span> transaksi tercatat di sistem</p>
             </div>
         </div>
+        
+        <!-- Modern Status Badge -->
         <div class="flex items-center gap-3">
             <button @click="window.print()" class="group flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white dark:bg-navy-900 border border-slate-200/60 dark:border-white/5 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-navy-800 hover:shadow-md transition-all">
                 <i data-lucide="printer" class="w-4 h-4 text-slate-400 group-hover:text-accent-500 transition-colors"></i>
                 <span>Cetak Laporan</span>
             </button>
-            <div class="h-10 w-[1px] bg-slate-200 dark:bg-white/10 hidden sm:block"></div>
-            <div class="hidden sm:flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                <span class="h-2 w-2 rounded-full bg-success animate-pulse"></span>
-                Sistem Aktif
+            
+            <!-- Modern System Status Badge -->
+            <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-success/10 to-success/5 border border-success/20 shadow-sm">
+                <span class="relative flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
+                </span>
+                <span class="text-xs font-bold text-success uppercase tracking-wider">Online</span>
             </div>
         </div>
     </div>
@@ -93,7 +99,8 @@
 
             <!-- Action Buttons -->
             <div class="flex gap-2">
-                <button type="submit" class="flex-1 bg-accent-500 text-white rounded-xl py-2.5 text-sm font-black uppercase tracking-widest hover:bg-accent-600 shadow-lg shadow-accent-500/30 transition-all active:scale-95">
+                <button type="submit" class="flex-1 flex items-center justify-center gap-2 bg-accent-500 text-white rounded-xl py-2.5 text-sm font-black uppercase tracking-widest hover:bg-accent-600 shadow-lg shadow-accent-500/30 transition-all active:scale-95">
+                    <i data-lucide="sliders" class="w-4 h-4"></i>
                     Filter
                 </button>
                 <a href="{{ route('admin.transactions.index') }}" class="flex items-center justify-center px-4 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-white/10 dark:text-slate-400 transition-all">
@@ -147,7 +154,7 @@
             </div>
         </div>
 
-        <!-- Populer Method -->
+        <!-- Popular Method -->
         <div class="group relative bg-white dark:bg-navy-900 p-6 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-black/20 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1.5 overflow-hidden border border-white dark:border-white/5">
             <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-warning/5 to-transparent rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
             <div class="relative flex items-center gap-4">
@@ -156,7 +163,16 @@
                 </div>
                 <div>
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Metode Utama</p>
-                    <h3 class="text-2xl font-black text-navy-900 dark:text-white tracking-tight">Tunai</h3>
+                    <h3 class="text-2xl font-black text-navy-900 dark:text-white tracking-tight">
+                        @php
+                            $popularMethod = \Illuminate\Support\Facades\DB::table('transactions')
+                                ->select('payment_method', \Illuminate\Support\Facades\DB::raw('COUNT(*) as count'))
+                                ->groupBy('payment_method')
+                                ->orderByDesc('count')
+                                ->first();
+                            echo $popularMethod ? ucfirst($popularMethod->payment_method) : '-';
+                        @endphp
+                    </h3>
                 </div>
             </div>
         </div>
@@ -201,20 +217,34 @@
                             </div>
                         </td>
                         <td class="px-6 py-5 whitespace-nowrap">
+                            @php
+                                $itemCount = $trx->items ? $trx->items->sum('qty') : 0;
+                            @endphp
                             <span class="px-3 py-1 rounded-lg bg-slate-100 dark:bg-navy-800 text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                                {{ $trx->total_item }} Item
+                                {{ $itemCount }} Item
                             </span>
                         </td>
                         <td class="px-6 py-5 whitespace-nowrap">
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter" 
-                                  :class="{
-                                      'bg-success/10 text-success': '{{ $trx->payment_method }}' === 'cash',
-                                      'bg-accent-50/20 text-accent-500': '{{ $trx->payment_method }}' === 'qris',
-                                      'bg-purple-100 dark:bg-purple-900/20 text-purple-600': '{{ $trx->payment_method }}' === 'debit',
-                                      'bg-warning/10 text-warning': '{{ $trx->payment_method }}' === 'ewallet'
-                                  }">
-                                <i data-lucide="{{ $trx->payment_method === 'cash' ? 'banknote' : ($trx->payment_method === 'qris' ? 'qr-code' : ($trx->payment_method === 'debit' ? 'credit-card' : 'wallet')) }}" class="w-3 h-3"></i>
-                                {{ ucfirst($trx->payment_method) }}
+                            @php
+                                $badgeClasses = [
+                                    'cash' => 'bg-success/10 text-success border border-success/20',
+                                    'qris' => 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800',
+                                    'debit' => 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800',
+                                    'ewallet' => 'bg-warning/10 text-warning border border-warning/20'
+                                ];
+                                $icons = [
+                                    'cash' => 'banknote',
+                                    'qris' => 'qr-code',
+                                    'debit' => 'credit-card',
+                                    'ewallet' => 'wallet'
+                                ];
+                                $method = $trx->payment_method;
+                                $class = $badgeClasses[$method] ?? $badgeClasses['cash'];
+                                $icon = $icons[$method] ?? $icons['cash'];
+                            @endphp
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter {{ $class }}">
+                                <i data-lucide="{{ $icon }}" class="w-3 h-3"></i>
+                                {{ ucfirst($method) }}
                             </span>
                         </td>
                         <td class="px-6 py-5 text-right whitespace-nowrap">
@@ -252,9 +282,50 @@
             </table>
         </div>
         
+        <!-- Modern Pagination -->
         @if($transactions->hasPages())
-        <div class="px-6 py-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/30 dark:bg-navy-900/30">
-            {{ $transactions->links() }}
+        <div class="px-6 py-5 border-t border-slate-100 dark:border-white/5 bg-slate-50/30 dark:bg-navy-900/30">
+            <div class="flex items-center justify-between">
+                <!-- Info Text -->
+                <div class="text-sm text-slate-600 dark:text-slate-400">
+                    Menampilkan <span class="font-bold text-navy-900 dark:text-white">{{ $transactions->firstItem() }}</span> - <span class="font-bold text-navy-900 dark:text-white">{{ $transactions->lastItem() }}</span> dari <span class="font-bold text-navy-900 dark:text-white">{{ $transactions->total() }}</span> hasil
+                </div>
+                
+                <!-- Simple Prev/Next Buttons -->
+                <div class="flex items-center gap-2">
+                    @if($transactions->onFirstPage())
+                        <button disabled class="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-400 cursor-not-allowed text-sm font-bold">
+                            <span class="flex items-center gap-1.5">
+                                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                                Previous
+                            </span>
+                        </button>
+                    @else
+                        <a href="{{ $transactions->previousPageUrl() }}" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-accent-500 hover:text-white hover:border-accent-500 hover:shadow-lg hover:shadow-accent-500/30 transition-all text-sm font-bold">
+                            <span class="flex items-center gap-1.5">
+                                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                                Previous
+                            </span>
+                        </a>
+                    @endif
+                    
+                    @if($transactions->hasMorePages())
+                        <a href="{{ $transactions->nextPageUrl() }}" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-accent-500 hover:text-white hover:border-accent-500 hover:shadow-lg hover:shadow-accent-500/30 transition-all text-sm font-bold">
+                            <span class="flex items-center gap-1.5">
+                                Next
+                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </span>
+                        </a>
+                    @else
+                        <button disabled class="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-400 cursor-not-allowed text-sm font-bold">
+                            <span class="flex items-center gap-1.5">
+                                Next
+                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </span>
+                        </button>
+                    @endif
+                </div>
+            </div>
         </div>
         @endif
     </div>

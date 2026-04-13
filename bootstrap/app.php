@@ -24,5 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })->withProviders([
         \SimpleSoftwareIO\QrCode\QrCodeServiceProvider::class,
+        \Barryvdh\DomPDF\ServiceProvider::class,
+        \Barryvdh\Snappy\ServiceProvider::class,
     ])->create();
     

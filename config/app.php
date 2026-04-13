@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Asia/Jakarta',
 
     /*
     |--------------------------------------------------------------------------
@@ -121,6 +121,11 @@ return [
     'maintenance' => [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
+    ],
+
+    'aliases' => [
+        'Pdf' => Barryvdh\DomPDF\Facade\Pdf::class,
+        'SnappyPdf' => Barryvdh\Snappy\Facades\SnappyPdf::class,
     ],
 
 ];

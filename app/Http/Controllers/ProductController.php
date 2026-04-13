@@ -20,46 +20,46 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $query = Product::with('category');
-
-        // Search
+        
+        // Search filter
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                    ->orWhere('sku', 'LIKE', "%{$search}%")
-                    ->orWhere('barcode', 'LIKE', "%{$search}%");
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'LIKE', "%{$request->search}%")
+                  ->orWhere('sku', 'LIKE', "%{$request->search}%")
+                  ->orWhere('barcode', 'LIKE', "%{$request->search}%");
             });
         }
-
-        // Filter by Category
+        
+        // Category filter
         if ($request->filled('category')) {
             $query->where('category_id', $request->category);
         }
-
-        // Filter by Stock Status
+        
+        // Stock status filter
         if ($request->filled('stock_status')) {
-            if ($request->stock_status === 'low') {
-                $query->whereColumn('stock', '<=', 'min_stock');
-            } elseif ($request->stock_status === 'out') {
-                $query->where('stock', 0);
-            } elseif ($request->stock_status === 'available') {
-                $query->whereColumn('stock', '>', 'min_stock');
+            switch ($request->stock_status) {
+                case 'available':
+                    $query->whereColumn('stock', '>', 'min_stock');
+                    break;
+                case 'low':
+                    $query->whereColumn('stock', '<=', 'min_stock')
+                          ->where('stock', '>', 0);
+                    break;
+                case 'out':
+                    $query->where('stock', 0);
+                    break;
             }
         }
-
-        // Filter by Status
-        if ($request->filled('status')) {
-            $query->where('is_active', $request->status === 'active');
-        }
-
-        // Sort
-        $sortField = $request->input('sort', 'created_at');
-        $sortDirection = $request->input('direction', 'desc');
-        $query->orderBy($sortField, $sortDirection);
-
-        $products = $query->paginate(15)->withQueryString();
+        
+        $products = $query->latest()->paginate(8);
+        
         $categories = Category::where('is_active', true)->get();
-
+        
+        // Return partial view for AJAX requests
+        if ($request->ajax()) {
+            return view('admin.products.partials.grid', compact('products'));
+        }
+        
         return view('admin.products.index', compact('products', 'categories'));
     }
 

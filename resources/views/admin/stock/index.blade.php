@@ -13,26 +13,33 @@
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 animate-fade-in-down">
                 <div>
                     <div class="flex items-center gap-3 mb-2">
-                        <h1 class="text-3xl font-bold bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent">
-                            Manajemen Stok
-                        </h1>
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-lg shadow-accent-500/20">
+                                <i data-lucide="warehouse" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <h1 class="text-3xl font-black bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent tracking-tight">
+                                    Manajemen Stok
+                                </h1>
+                                <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Pantau dan kelola inventori produk toko Anda</p>
+                            </div>
+                        </div>
                         <span class="px-3 py-1 bg-accent-500/10 text-accent-600 dark:text-accent-400 text-xs font-semibold rounded-full flex items-center gap-1.5">
                             <span class="h-1.5 w-1.5 rounded-full bg-accent-500 animate-pulse"></span>
                             {{ $summary['total_products'] }} Produk
                         </span>
                     </div>
-                    <p class="text-slate-600 dark:text-slate-400">Pantau dan kelola inventori produk toko Anda</p>
                 </div>
 
                 <div class="flex gap-3">
                     <a href="{{ route('admin.stock.stock-in') }}" 
-                       class="group flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-success to-success/80 text-white rounded-xl font-medium shadow-lg shadow-success/30 hover:shadow-success/50 transition-all duration-300 hover:-translate-y-0.5">
+                       class="group flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-success to-success/80 text-white rounded-xl font-bold shadow-lg shadow-success/30 hover:shadow-success/50 transition-all duration-300 hover:-translate-y-0.5">
                         <i data-lucide="plus-circle" class="w-5 h-5 group-hover:rotate-90 transition-transform"></i>
                         <span>Stok Masuk</span>
                     </a>
                     <a href="{{ route('admin.stock.history') }}" 
-                       class="flex items-center gap-2 px-5 py-3 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors">
-                        <i data-lucide="history" class="w-5 h-5"></i>
+                       class="group flex items-center gap-2 px-5 py-3 bg-white dark:bg-navy-900 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-navy-800 hover:shadow-md transition-all duration-300">
+                        <i data-lucide="history" class="w-5 h-5 text-slate-400 group-hover:text-accent-500 transition-colors"></i>
                         <span>Riwayat</span>
                     </a>
                 </div>
@@ -100,126 +107,85 @@
             </div>
 
             <!-- Filters -->
-            <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 animate-fade-in-up" style="animation-delay: 0.5s;">
-                <form action="{{ route('admin.stock.index') }}" method="GET" class="flex flex-wrap gap-4">
+            <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 animate-fade-in-up overflow-visible relative z-20" style="animation-delay: 0.5s;">
+                <form id="stockFilterForm" class="flex flex-wrap gap-4">
+                    @csrf
                     <div class="flex-1 min-w-48">
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari produk..."
-                               class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white">
+                        <div class="relative group">
+                            <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-accent-500 transition-colors"></i>
+                            <input type="text" name="search" id="searchInput" value="{{ request('search') }}" placeholder="Cari produk..."
+                                   class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm font-bold focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all">
+                        </div>
                     </div>
-                    <select name="category" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all">
-                        <option value="">Semua Kategori</option>
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
-                        @endforeach
-                    </select>
-                    <select name="stock_status" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all">
-                        <option value="">Semua Stok</option>
-                        <option value="available" {{ request('stock_status') == 'available' ? 'selected' : '' }}>Stok Aman</option>
-                        <option value="low" {{ request('stock_status') == 'low' ? 'selected' : '' }}>Stok Menipis</option>
-                        <option value="out" {{ request('stock_status') == 'out' ? 'selected' : '' }}>Stok Habis</option>
-                    </select>
-                    <button type="submit" class="rounded-xl bg-accent-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-600 transition-colors">
+                    
+                    <!-- Category Dropdown - FIXED -->
+                    <div class="relative" x-data="{ open: false }" style="z-index: 50;">
+                        <button type="button" @click="open = !open" @click.away="open = false"
+                                class="flex items-center justify-between min-w-[180px] pl-4 pr-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm font-bold focus:border-accent-500 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all hover:bg-white">
+                            <span id="categoryText">{{ request('category') ? $categories->firstWhere('id', request('category'))->name : 'Semua Kategori' }}</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300" :class="{'rotate-180': open}"></i>
+                        </button>
+                        <div x-show="open" x-transition 
+                             class="absolute z-50 mt-2 w-full rounded-2xl bg-white dark:bg-navy-900 p-2 shadow-2xl border border-slate-100 dark:border-white/10 max-h-64 overflow-y-auto"
+                             style="top: 100%;">
+                            <button type="button" @click="selectCategory('', 'Semua Kategori'); open = false"
+                                    class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ !request('category') ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">
+                                Semua Kategori
+                            </button>
+                            @foreach($categories as $cat)
+                                <button type="button" @click="selectCategory('{{ $cat->id }}', '{{ $cat->name }}'); open = false"
+                                        class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ request('category') == $cat->id ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">
+                                    {{ $cat->name }}
+                                </button>
+                            @endforeach
+                        </div>
+                        <input type="hidden" name="category" id="categoryInput" value="{{ request('category') }}">
+                    </div>
+
+                    <!-- Stock Status Dropdown - FIXED -->
+                    <div class="relative" x-data="{ open: false }" style="z-index: 50;">
+                        <button type="button" @click="open = !open" @click.away="open = false"
+                                class="flex items-center justify-between min-w-[160px] pl-4 pr-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm font-bold focus:border-accent-500 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all hover:bg-white">
+                            <span class="mr-2" id="stockText">{{ request('stock_status') ? (request('stock_status') == 'available' ? 'Stok Aman' : (request('stock_status') == 'low' ? 'Stok Menipis' : 'Stok Habis')) : 'Semua Stok' }}</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300" :class="{'rotate-180': open}"></i>
+                        </button>
+                        <div x-show="open" x-transition 
+                             class="absolute z-50 mt-2 w-full rounded-2xl bg-white dark:bg-navy-900 p-2 shadow-2xl border border-slate-100 dark:border-white/10 max-h-64 overflow-y-auto"
+                             style="top: 100%;">
+                            <button type="button" @click="selectStock('', 'Semua Stok'); open = false"
+                                    class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ !request('stock_status') ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">
+                                Semua Stok
+                            </button>
+                            <button type="button" @click="selectStock('available', 'Stok Aman'); open = false"
+                                    class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ request('stock_status') == 'available' ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">
+                                Stok Aman
+                            </button>
+                            <button type="button" @click="selectStock('low', 'Stok Menipis'); open = false"
+                                    class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ request('stock_status') == 'low' ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">
+                                Stok Menipis
+                            </button>
+                            <button type="button" @click="selectStock('out', 'Stok Habis'); open = false"
+                                    class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ request('stock_status') == 'out' ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">
+                                Stok Habis
+                            </button>
+                        </div>
+                        <input type="hidden" name="stock_status" id="stockInput" value="{{ request('stock_status') }}">
+                    </div>
+
+                    <button type="button" onclick="filterStock()" class="bg-accent-500 text-white rounded-xl px-5 py-2.5 text-sm font-black uppercase tracking-widest hover:bg-accent-600 shadow-lg shadow-accent-500/30 transition-all active:scale-95">
                         <i data-lucide="filter" class="inline h-4 w-4 mr-2"></i>Filter
                     </button>
-                    <a href="{{ route('admin.stock.index') }}" class="rounded-xl border border-slate-200 dark:border-white/10 px-5 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors">
-                        Reset
-                    </a>
+                    <button type="button" onclick="resetFilter()" class="flex items-center justify-center px-4 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-white/10 dark:text-slate-400 transition-all">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    </button>
                 </form>
             </div>
 
             <!-- Products Table -->
-            <div class="bg-white dark:bg-navy-900 rounded-2xl shadow-lg shadow-slate-200/50 dark:shadow-black/20 overflow-hidden animate-fade-in-up" style="animation-delay: 0.6s;">
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-slate-50 dark:bg-navy-800/50">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Produk</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Kategori</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">SKU</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Harga</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Stok</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-4 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-white/5">
-                            @forelse($products as $product)
-                                <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="h-12 w-12 rounded-xl bg-slate-100 dark:bg-navy-800 overflow-hidden flex-shrink-0">
-                                                @if($product->image)
-                                                    <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
-                                                @else
-                                                    <div class="h-full w-full flex items-center justify-center">
-                                                        <i data-lucide="package" class="h-6 w-6 text-slate-400"></i>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            <div>
-                                                <p class="font-medium text-navy-900 dark:text-white">{{ $product->name }}</p>
-                                                <p class="text-xs text-slate-500">{{ Str::limit($product->description, 30) ?? '-' }}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400">
-                                            {{ $product->category->name ?? '-' }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="font-mono text-sm text-slate-600 dark:text-slate-300">{{ $product->sku }}</span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div>
-                                            <p class="text-sm font-bold text-accent-600 dark:text-accent-400">Rp {{ number_format($product->sell_price, 0, ',', '.') }}</p>
-                                            <p class="text-xs text-slate-500">Beli: Rp {{ number_format($product->buy_price, 0, ',', '.') }}</p>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="font-bold {{ $product->stock <= 0 ? 'text-danger' : ($product->stock <= $product->min_stock ? 'text-warning' : 'text-success') }}">
-                                            {{ $product->stock }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        @if($product->stock <= 0)
-                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-danger/10 text-danger">Habis</span>
-                                        @elseif($product->stock <= $product->min_stock)
-                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-warning/10 text-warning animate-pulse">Menipis</span>
-                                        @else
-                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-success/10 text-success">Aman</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <div class="flex items-center justify-end gap-2">
-                                            <a href="{{ route('admin.products.show', $product) }}" 
-                                               class="p-2 text-slate-400 hover:text-accent-500 transition-colors" title="Lihat Detail">
-                                                <i data-lucide="eye" class="h-4 w-4"></i>
-                                            </a>
-                                            <a href="{{ route('admin.stock.adjust', $product) }}" 
-                                               class="p-2 text-slate-400 hover:text-accent-500 transition-colors" title="Sesuaikan Stok">
-                                                <i data-lucide="edit" class="h-4 w-4"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="px-6 py-12 text-center">
-                                        <i data-lucide="inbox" class="h-16 w-16 text-slate-300 dark:text-slate-600 mx-auto mb-4"></i>
-                                        <p class="text-slate-500 dark:text-slate-400">Tidak ada data produk</p>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                @if($products->hasPages())
-                    <div class="px-6 py-4 border-t border-slate-100 dark:border-white/5">
-                        {{ $products->links() }}
-                    </div>
-                @endif
+            <div id="stockTableWrapper">
+                @include('admin.stock.partials.table')
             </div>
+
         </div>
     </div>
 
@@ -239,10 +205,111 @@
     @endpush
 
     @push('scripts')
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            lucide.createIcons();
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+        initStockAjax();
+    });
+
+    function initStockAjax() {
+        const tableWrapper = document.getElementById('stockTableWrapper');
+        if (!tableWrapper) return;
+
+        // Handle pagination links
+        tableWrapper.addEventListener('click', function(event) {
+            const link = event.target.closest('a.ajax-link');
+            if (!link) return;
+            
+            event.preventDefault();
+            const url = new URL(link.href, window.location.origin);
+            fetchStockTable(url.searchParams.toString());
         });
-        </script>
+
+        // Handle search input with debounce
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            let debounceTimer;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    filterStock();
+                }, 500); // 500ms debounce
+            });
+        }
+    }
+
+    function selectCategory(value, text) {
+        document.getElementById('categoryInput').value = value;
+        document.getElementById('categoryText').textContent = text;
+        filterStock();
+    }
+
+    function selectStock(value, text) {
+        document.getElementById('stockInput').value = value;
+        document.getElementById('stockText').textContent = text;
+        filterStock();
+    }
+
+    function filterStock() {
+        const search = document.getElementById('searchInput').value;
+        const category = document.getElementById('categoryInput').value;
+        const stockStatus = document.getElementById('stockInput').value;
+        
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (category) params.append('category', category);
+        if (stockStatus) params.append('stock_status', stockStatus);
+        
+        fetchStockTable(params.toString());
+    }
+
+    function resetFilter() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('categoryInput').value = '';
+        document.getElementById('stockInput').value = '';
+        document.getElementById('categoryText').textContent = 'Semua Kategori';
+        document.getElementById('stockText').textContent = 'Semua Stok';
+        fetchStockTable('');
+    }
+
+    async function fetchStockTable(queryString) {
+        const tableWrapper = document.getElementById('stockTableWrapper');
+        if (!tableWrapper) return;
+
+        // Show loading state
+        tableWrapper.style.opacity = '0.5';
+        tableWrapper.style.pointerEvents = 'none';
+        
+        try {
+            const response = await fetch("{{ route('admin.stock.index') }}?" + queryString, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html'
+                }
+            });
+            
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const html = await response.text();
+            
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const tableContent = doc.querySelector('#stockTableWrapper');
+            
+            if (tableContent) {
+                tableWrapper.innerHTML = tableContent.innerHTML;
+            } else {
+                tableWrapper.innerHTML = html;
+            }
+            lucide.createIcons();
+        } catch (error) {
+            console.error('Error loading stock data:', error);
+            alert('Terjadi kesalahan saat memuat data');
+        } finally {
+            tableWrapper.style.opacity = '1';
+            tableWrapper.style.pointerEvents = 'auto';
+        }
+    }
+    </script>
     @endpush
 @endsection

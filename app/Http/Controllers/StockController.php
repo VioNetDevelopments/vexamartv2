@@ -18,37 +18,50 @@ class StockController extends Controller
     public function index(Request $request)
     {
         $query = Product::with('category');
-
-        // Filter
+        
+        // Search filter
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'LIKE', "%{$request->search}%")
+                  ->orWhere('sku', 'LIKE', "%{$request->search}%");
+            });
+        }
+        
+        // Category filter
         if ($request->filled('category')) {
             $query->where('category_id', $request->category);
         }
-
+        
+        // Stock status filter
         if ($request->filled('stock_status')) {
-            if ($request->stock_status === 'low') {
-                $query->whereColumn('stock', '<=', 'min_stock');
-            } elseif ($request->stock_status === 'out') {
-                $query->where('stock', 0);
-            } elseif ($request->stock_status === 'available') {
-                $query->whereColumn('stock', '>', 'min_stock');
+            switch ($request->stock_status) {
+                case 'available':
+                    $query->whereColumn('stock', '>', 'min_stock');
+                    break;
+                case 'low':
+                    $query->whereColumn('stock', '<=', 'min_stock')
+                          ->where('stock', '>', 0);
+                    break;
+                case 'out':
+                    $query->where('stock', 0);
+                    break;
             }
         }
-
-        if ($request->filled('search')) {
-            $query->where('name', 'LIKE', "%{$request->search}%");
-        }
-
-        $products = $query->orderBy('name')->paginate(20);
+        
+        $products = $query->latest()->paginate(5);
         $categories = Category::where('is_active', true)->get();
-
-        // Stock summary
+        
         $summary = [
             'total_products' => Product::count(),
-            'low_stock' => Product::whereColumn('stock', '<=', 'min_stock')->count(),
+            'low_stock' => Product::whereColumn('stock', '<=', 'min_stock')->where('stock', '>', 0)->count(),
             'out_of_stock' => Product::where('stock', 0)->count(),
-            'total_value' => Product::sum(DB::raw('stock * buy_price')),
+            'total_value' => Product::selectRaw('SUM(stock * buy_price) as total')->value('total') ?? 0,
         ];
-
+        
+        if ($request->ajax()) {
+            return view('admin.stock.partials.table', compact('products'));
+        }
+        
         return view('admin.stock.index', compact('products', 'categories', 'summary'));
     }
 

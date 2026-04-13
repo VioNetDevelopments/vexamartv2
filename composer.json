@@ -83,7 +83,10 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [
+                "barryvdh/laravel-snappy",
+                "barryvdh/laravel-dompdf"
+            ]
         }
     },
     "config": {

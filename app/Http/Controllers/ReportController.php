@@ -19,62 +19,87 @@ class ReportController extends Controller
      */
     public function index(Request $request)
     {
-        // Default filter: bulan ini
         $dateFrom = $request->input('date_from', now()->startOfMonth()->format('Y-m-d'));
-        $dateTo = $request->input('date_to', now()->endOfMonth()->format('Y-m-d'));
+        $dateTo = $request->input('date_to', now()->format('Y-m-d'));
         $groupBy = $request->input('group_by', 'daily');
-
-        // Query dasar
-        $query = Transaction::whereBetween('created_at', [$dateFrom, $dateTo . ' 23:59:59'])
-            ->where('payment_status', 'paid');
-
-        // Filter tambahan
-        if ($request->filled('payment_method')) {
-            $query->where('payment_method', $request->payment_method);
+        $paymentMethod = $request->input('payment_method');
+        
+        // Query transactions with date range
+        $query = Transaction::with(['user', 'customer', 'items'])
+            ->whereBetween('created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']);
+        
+        // Filter by payment method
+        if ($paymentMethod) {
+            $query->where('payment_method', $paymentMethod);
         }
-
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->user_id);
-        }
-
-        // Summary Stats
+        
+        // ✅ FIXED: Paginate to 10 items per page
+        $transactions = $query->latest()->paginate(10);
+        
+        // Calculate stats
         $stats = [
-            'total_sales' => $query->clone()->sum('grand_total'),
-            'total_transactions' => $query->clone()->count(),
-            'total_items' => $query->clone()->sum('total_item'),
-            'avg_transaction' => $query->clone()->avg('grand_total'),
-            'total_profit' => $this->calculateProfit($dateFrom, $dateTo),
+            'total_sales' => $query->sum('grand_total'),
+            'total_transactions' => $query->count(),
+            'total_items' => DB::table('transaction_items')
+                ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+                ->whereBetween('transactions.created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+                ->when($paymentMethod, fn($q) => $q->where('transactions.payment_method', $paymentMethod))
+                ->sum('qty'),
+            'avg_transaction' => $query->avg('grand_total') ?? 0,
+            'total_profit' => $this->calculateProfit($dateFrom, $dateTo, $paymentMethod),
         ];
-
-        // Chart Data
-        $chartData = $this->getChartData($dateFrom, $dateTo, $groupBy);
-
-        // Top Products
-        $topProducts = $this->getTopProducts($dateFrom, $dateTo);
-
-        // Payment Distribution
-        $paymentDistribution = $this->getPaymentDistribution($dateFrom, $dateTo);
-
-        // Category Performance
-        $categoryPerformance = $this->getCategoryPerformance($dateFrom, $dateTo);
-
-        // Transactions for table
-        $transactions = $query->with(['user', 'customer'])
-            ->latest()
-            ->paginate(20)
-            ->withQueryString();
-
-        // Users for filter
-        $users = \App\Models\User::where('is_active', true)->get();
-
+        
+        // Chart data based on group by
+        $chartData = $this->getChartData($dateFrom, $dateTo, $groupBy, $paymentMethod);
+        
+        // Payment distribution
+        $paymentDistribution = DB::table('transactions')
+            ->select('payment_method as method', DB::raw('COUNT(*) as total'))
+            ->whereBetween('created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+            ->groupBy('payment_method')
+            ->get();
+        
+        // Top products
+        $topProducts = DB::table('transaction_items')
+            ->join('products', 'transaction_items.product_id', '=', 'products.id')
+            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->select(
+                'products.id',
+                'products.name',
+                'products.image',
+                DB::raw('SUM(transaction_items.qty) as total_sold'),
+                DB::raw('SUM(transaction_items.subtotal) as total_revenue')
+            )
+            ->whereBetween('transactions.created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+            ->when($paymentMethod, fn($q) => $q->where('transactions.payment_method', $paymentMethod))
+            ->groupBy('products.id', 'products.name', 'products.image')
+            ->orderByDesc('total_sold')
+            ->limit(10)
+            ->get();
+        
+        // Category performance
+        $categoryPerformance = DB::table('transaction_items')
+            ->join('products', 'transaction_items.product_id', '=', 'products.id')
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->select(
+                'categories.name',
+                DB::raw('SUM(transaction_items.qty) as total_sold'),
+                DB::raw('SUM(transaction_items.subtotal) as total_revenue')
+            )
+            ->whereBetween('transactions.created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+            ->when($paymentMethod, fn($q) => $q->where('transactions.payment_method', $paymentMethod))
+            ->groupBy('categories.id', 'categories.name')
+            ->orderByDesc('total_revenue')
+            ->get();
+        
         return view('admin.reports.index', compact(
+            'transactions',
             'stats',
             'chartData',
-            'topProducts',
             'paymentDistribution',
+            'topProducts',
             'categoryPerformance',
-            'transactions',
-            'users',
             'dateFrom',
             'dateTo',
             'groupBy'
@@ -84,21 +109,26 @@ class ReportController extends Controller
     /**
      * Calculate profit
      */
-    private function calculateProfit($from, $to)
+    private function calculateProfit($from, $to, $paymentMethod = null)
     {
-        return DB::table('transaction_items')
+        $query = DB::table('transaction_items')
             ->join('products', 'transaction_items.product_id', '=', 'products.id')
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
             ->whereBetween('transactions.created_at', [$from, $to . ' 23:59:59'])
-            ->where('transactions.payment_status', 'paid')
-            ->selectRaw('SUM((products.sell_price - products.buy_price) * transaction_items.qty) as profit')
+            ->where('transactions.payment_status', 'paid');
+
+        if ($paymentMethod) {
+            $query->where('transactions.payment_method', $paymentMethod);
+        }
+
+        return $query->selectRaw('SUM((products.sell_price - products.buy_price) * transaction_items.qty) as profit')
             ->value('profit') ?? 0;
     }
 
     /**
      * Get chart data
      */
-    private function getChartData($from, $to, $groupBy)
+    private function getChartData($from, $to, $groupBy, $paymentMethod = null)
     {
         $format = match ($groupBy) {
             'weekly' => '%Y-%u',
@@ -112,10 +142,15 @@ class ReportController extends Controller
             default => 'd M',
         };
 
-        $data = Transaction::selectRaw("DATE_FORMAT(created_at, '{$format}') as period, SUM(grand_total) as total, COUNT(*) as count")
+        $query = Transaction::selectRaw("DATE_FORMAT(created_at, '{$format}') as period, SUM(grand_total) as total, COUNT(*) as count")
             ->whereBetween('created_at', [$from, $to . ' 23:59:59'])
-            ->where('payment_status', 'paid')
-            ->groupBy('period')
+            ->where('payment_status', 'paid');
+
+        if ($paymentMethod) {
+            $query->where('payment_method', $paymentMethod);
+        }
+
+        $data = $query->groupBy('period')
             ->orderBy('period')
             ->get();
 
@@ -126,56 +161,11 @@ class ReportController extends Controller
         ];
     }
 
-    /**
-     * Get top products
-     */
-    private function getTopProducts($from, $to, $limit = 10)
-    {
-        return DB::table('transaction_items')
-            ->join('products', 'transaction_items.product_id', '=', 'products.id')
-            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
-            ->whereBetween('transactions.created_at', [$from, $to . ' 23:59:59'])
-            ->where('transactions.payment_status', 'paid')
-            ->selectRaw('products.id, products.name, products.image, SUM(transaction_items.qty) as total_sold, SUM(transaction_items.subtotal) as total_revenue')
-            ->groupBy('products.id', 'products.name', 'products.image')
-            ->orderByDesc('total_sold')
-            ->limit($limit)
-            ->get();
-    }
 
-    /**
-     * Get payment distribution
-     */
-    private function getPaymentDistribution($from, $to)
-    {
-        return Transaction::selectRaw('payment_method, COUNT(*) as count, SUM(grand_total) as total')
-            ->whereBetween('created_at', [$from, $to . ' 23:59:59'])
-            ->where('payment_status', 'paid')
-            ->groupBy('payment_method')
-            ->get()
-            ->map(fn($d) => [
-                'method' => ucfirst($d->payment_method),
-                'count' => $d->count,
-                'total' => $d->total,
-            ]);
-    }
 
-    /**
-     * Get category performance
-     */
-    private function getCategoryPerformance($from, $to)
-    {
-        return DB::table('transaction_items')
-            ->join('products', 'transaction_items.product_id', '=', 'products.id')
-            ->join('categories', 'products.category_id', '=', 'categories.id')
-            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
-            ->whereBetween('transactions.created_at', [$from, $to . ' 23:59:59'])
-            ->where('transactions.payment_status', 'paid')
-            ->selectRaw('categories.name, SUM(transaction_items.qty) as total_sold, SUM(transaction_items.subtotal) as total_revenue')
-            ->groupBy('categories.id', 'categories.name')
-            ->orderByDesc('total_revenue')
-            ->get();
-    }
+
+
+
 
     /**
      * Export to Excel
@@ -204,7 +194,7 @@ class ReportController extends Controller
             'total_transactions' => Transaction::whereBetween('created_at', [$dateFrom, $dateTo])->count(),
         ];
 
-        $transactions = Transaction::with(['user', 'items.product'])
+        $transactions = Transaction::with(['user', 'customer', 'items.product'])
             ->whereBetween('created_at', [$dateFrom, $dateTo])
             ->latest()
             ->get();

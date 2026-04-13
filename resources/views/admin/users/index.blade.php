@@ -1,292 +1,399 @@
 @extends('layouts.app')
 
 @section('content')
-    <div
-        class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-navy-950 dark:via-navy-900 dark:to-navy-950 p-6">
-        <div class="relative max-w-7xl mx-auto space-y-6">
-            <!-- Header -->
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 animate-fade-in-down">
-                <div>
-                    <div class="flex items-center gap-3 mb-2">
-                        <h1
-                            class="text-3xl font-bold bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent">
-                            Manajemen User
-                        </h1>
-                        <span
-                            class="px-3 py-1 bg-accent-500/10 text-accent-600 dark:text-accent-400 text-xs font-semibold rounded-full">
-                            {{ $stats['total'] }} User
-                        </span>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-navy-950 dark:via-navy-900 dark:to-navy-950 p-6">
+    <!-- Animated Background -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-40 -right-40 w-80 h-80 bg-accent-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+    </div>
+
+    <div class="relative max-w-7xl mx-auto space-y-6">
+        <!-- Header -->
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 animate-fade-in-down">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-lg shadow-accent-500/20">
+                            <i data-lucide="users" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-black bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent tracking-tight">
+                                Manajemen User
+                            </h1>
+                            <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Kelola akses dan peran pengguna sistem</p>
+                        </div>
                     </div>
-                    <p class="text-slate-600 dark:text-slate-400">Kelola akses user dan role</p>
+                    <span class="px-3 py-1 bg-accent-500/10 text-accent-600 dark:text-accent-400 text-xs font-semibold rounded-full flex items-center gap-1.5">
+                        <span class="h-1.5 w-1.5 rounded-full bg-accent-500 animate-pulse"></span>
+                        {{ $stats['total'] }} User
+                    </span>
                 </div>
-
-                <a href="{{ route('admin.users.create') }}"
-                    class="group flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-accent-500 to-accent-600 text-white rounded-xl font-medium shadow-lg shadow-accent-500/30 hover:shadow-accent-500/50 transition-all duration-300 hover:-translate-y-0.5">
-                    <i data-lucide="user-plus" class="w-5 h-5 group-hover:rotate-90 transition-transform"></i>
-                    <span>Tambah User</span>
-                </a>
             </div>
+        </div>
 
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg animate-fade-in-up"
-                    style="animation-delay: 0.1s;">
+        <!-- Stats Cards - SAME DESIGN AS STOCK PAGE -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+            <!-- Total User -->
+            <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl transition-all duration-500 hover:-translate-y-2 overflow-hidden animate-fade-in-up" style="animation-delay: 0.1s;">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-slate-500/10 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                <div class="relative">
                     <div class="flex items-center justify-between mb-4">
-                        <div
-                            class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center shadow-lg shadow-slate-500/30">
                             <i data-lucide="users" class="w-6 h-6 text-white"></i>
                         </div>
                     </div>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Total User</p>
+                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total User</p>
                     <h3 class="text-2xl font-bold text-navy-900 dark:text-white">{{ $stats['total'] }}</h3>
                 </div>
+            </div>
 
-                <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg animate-fade-in-up"
-                    style="animation-delay: 0.2s;">
+            <!-- Owner -->
+            <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl transition-all duration-500 hover:-translate-y-2 overflow-hidden animate-fade-in-up" style="animation-delay: 0.2s;">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                <div class="relative">
                     <div class="flex items-center justify-between mb-4">
-                        <div
-                            class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
                             <i data-lucide="crown" class="w-6 h-6 text-white"></i>
                         </div>
                     </div>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Owner</p>
+                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Owner</p>
                     <h3 class="text-2xl font-bold text-purple-600">{{ $stats['owner'] }}</h3>
                 </div>
+            </div>
 
-                <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg animate-fade-in-up"
-                    style="animation-delay: 0.3s;">
+            <!-- Admin -->
+            <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl transition-all duration-500 hover:-translate-y-2 overflow-hidden animate-fade-in-up" style="animation-delay: 0.3s;">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                <div class="relative">
                     <div class="flex items-center justify-between mb-4">
-                        <div
-                            class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
                             <i data-lucide="shield" class="w-6 h-6 text-white"></i>
                         </div>
                     </div>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Admin</p>
-                    <h3 class="text-2xl font-bold text-accent-600">{{ $stats['admin'] }}</h3>
+                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Admin</p>
+                    <h3 class="text-2xl font-bold text-blue-600">{{ $stats['admin'] }}</h3>
                 </div>
+            </div>
 
-                <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg animate-fade-in-up"
-                    style="animation-delay: 0.4s;">
+            <!-- Kasir -->
+            <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl transition-all duration-500 hover:-translate-y-2 overflow-hidden animate-fade-in-up" style="animation-delay: 0.4s;">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/10 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                <div class="relative">
                     <div class="flex items-center justify-between mb-4">
-                        <div
-                            class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-                            <i data-lucide="cashier" class="w-6 h-6 text-white"></i>
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/30">
+                            <i data-lucide="monitor-smartphone" class="w-6 h-6 text-white"></i>
                         </div>
                     </div>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Kasir</p>
+                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Kasir</p>
                     <h3 class="text-2xl font-bold text-green-600">{{ $stats['cashier'] }}</h3>
                 </div>
+            </div>
 
-                <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg animate-fade-in-up"
-                    style="animation-delay: 0.5s;">
+            <!-- Aktif -->
+            <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl transition-all duration-500 hover:-translate-y-2 overflow-hidden animate-fade-in-up" style="animation-delay: 0.5s;">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-success/10 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                <div class="relative">
                     <div class="flex items-center justify-between mb-4">
-                        <div
-                            class="w-12 h-12 rounded-xl bg-gradient-to-br from-success to-success/80 flex items-center justify-center">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-lg shadow-success/30">
                             <i data-lucide="check-circle" class="w-6 h-6 text-white"></i>
                         </div>
                     </div>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Aktif</p>
+                    <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Aktif</p>
                     <h3 class="text-2xl font-bold text-success">{{ $stats['active'] }}</h3>
                 </div>
             </div>
-
-            <!-- Search & Filter -->
-            <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg animate-fade-in-up"
-                style="animation-delay: 0.6s;">
-                <form action="{{ route('admin.users.index') }}" method="GET" class="flex flex-wrap gap-4">
-                    <div class="flex-1 min-w-64">
-                        <div class="relative">
-                            <i data-lucide="search"
-                                class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" name="search" value="{{ request('search') }}"
-                                placeholder="Cari nama atau email..."
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white">
-                        </div>
-                    </div>
-                    <select name="role"
-                        class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white">
-                        <option value="">Semua Role</option>
-                        <option value="owner" {{ request('role') == 'owner' ? 'selected' : '' }}>Owner</option>
-                        <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                        <option value="cashier" {{ request('role') == 'cashier' ? 'selected' : '' }}>Kasir</option>
-                    </select>
-                    <select name="status"
-                        class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-white/10 dark:bg-navy-800 dark:text-white">
-                        <option value="">Semua Status</option>
-                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Aktif</option>
-                        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Nonaktif</option>
-                    </select>
-                    <button type="submit"
-                        class="rounded-xl bg-accent-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-600 transition-colors">
-                        <i data-lucide="filter" class="inline h-4 w-4 mr-2"></i>Filter
-                    </button>
-                    <a href="{{ route('admin.users.index') }}"
-                        class="rounded-xl border border-slate-200 dark:border-white/10 px-5 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors">
-                        Reset
-                    </a>
-                </form>
-            </div>
-
-            <!-- Users Table -->
-            <div class="bg-white dark:bg-navy-900 rounded-2xl shadow-lg overflow-hidden animate-fade-in-up"
-                style="animation-delay: 0.7s;">
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-slate-50 dark:bg-navy-800/50">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase">User</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase">Role</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase">Status</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase">Last Login</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase">Created</th>
-                                <th class="px-6 py-4 text-right text-xs font-medium text-slate-500 uppercase">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-white/5">
-                            @forelse($users as $user)
-                                <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <div
-                                                class="h-10 w-10 rounded-full bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center text-white font-semibold">
-                                                {{ strtoupper(substr($user->name, 0, 2)) }}
-                                            </div>
-                                            <div>
-                                                <p class="font-medium text-navy-900 dark:text-white">{{ $user->name }}</p>
-                                                <p class="text-xs text-slate-500">{{ $user->email }}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        @if($user->role === 'owner')
-                                            <span
-                                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
-                                                <i data-lucide="crown" class="w-3 h-3 mr-1"></i>Owner
-                                            </span>
-                                        @elseif($user->role === 'admin')
-                                            <span
-                                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-accent-100 text-accent-700 dark:bg-accent-900/30 dark:text-accent-400">
-                                                <i data-lucide="shield" class="w-3 h-3 mr-1"></i>Admin
-                                            </span>
-                                        @else
-                                            <span
-                                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                                                <i data-lucide="cashier" class="w-3 h-3 mr-1"></i>Kasir
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        @if($user->is_active)
-                                            <span
-                                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-success/10 text-success">
-                                                <i data-lucide="check-circle" class="w-3 h-3 mr-1"></i>Aktif
-                                            </span>
-                                        @else
-                                            <span
-                                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                                                <i data-lucide="x-circle" class="w-3 h-3 mr-1"></i>Nonaktif
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                        {{ $user->last_login_at ? $user->last_login_at->diffForHumans() : 'Belum pernah' }}
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                        {{ $user->created_at->format('d M Y') }}
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <div class="flex items-center justify-end gap-2">
-                                            <a href="{{ route('admin.users.edit', $user) }}"
-                                                class="p-2 text-slate-400 hover:text-accent-500 transition-colors" title="Edit">
-                                                <i data-lucide="edit" class="h-4 w-4"></i>
-                                            </a>
-                                            <form action="{{ route('admin.users.toggle-status', $user) }}" method="POST"
-                                                class="inline">
-                                                @csrf
-                                                <button type="submit"
-                                                    class="p-2 text-slate-400 hover:text-success transition-colors"
-                                                    title="Toggle Status">
-                                                    <i data-lucide="toggle-left" class="h-4 w-4"></i>
-                                                </button>
-                                            </form>
-                                            @if($user->id !== auth()->id())
-                                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
-                                                    class="inline" onsubmit="return confirm('Yakin ingin menghapus user ini?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit"
-                                                        class="p-2 text-slate-400 hover:text-danger transition-colors"
-                                                        title="Hapus">
-                                                        <i data-lucide="trash-2" class="h-4 w-4"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="px-6 py-12 text-center">
-                                        <i data-lucide="users"
-                                            class="h-16 w-16 text-slate-300 dark:text-slate-600 mx-auto mb-4"></i>
-                                        <p class="text-slate-500 dark:text-slate-400">Belum ada data user</p>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                @if($users->hasPages())
-                    <div class="px-6 py-4 border-t border-slate-100 dark:border-white/5">
-                        {{ $users->links() }}
-                    </div>
-                @endif
-            </div>
         </div>
+
+        <!-- Search & Filter - SAME DESIGN AS STOCK PAGE -->
+        <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 animate-fade-in-up overflow-visible relative z-20" style="animation-delay: 0.6s;">
+            <form id="userFilterForm" class="flex flex-wrap gap-4">
+                @csrf
+                <div class="flex-1 min-w-64">
+                    <div class="relative group">
+                        <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-accent-500 transition-colors"></i>
+                        <input type="text" name="search" id="searchInput" value="{{ request('search') }}" placeholder="Cari nama atau email..."
+                               class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm font-bold focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all">
+                    </div>
+                </div>
+                
+                <!-- Role Dropdown -->
+                <div class="relative" x-data="{ open: false }" style="z-index: 50;">
+                    <button type="button" @click="open = !open" @click.away="open = false"
+                            class="flex items-center justify-between min-w-[160px] pl-4 pr-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm font-bold focus:border-accent-500 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all hover:bg-white">
+                        <span id="roleText">{{ request('role') ? (request('role') == 'owner' ? 'Owner' : (request('role') == 'admin' ? 'Admin' : 'Kasir')) : 'Semua Role' }}</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300" :class="{'rotate-180': open}"></i>
+                    </button>
+                    <div x-show="open" x-transition 
+                         class="absolute z-50 mt-2 w-full rounded-2xl bg-white dark:bg-navy-900 p-2 shadow-2xl border border-slate-100 dark:border-white/10 max-h-64 overflow-y-auto"
+                         style="top: 100%;">
+                        <button type="button" @click="selectRole('', 'Semua Role'); open = false"
+                                class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ !request('role') ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">
+                            Semua Role
+                        </button>
+                        <button type="button" @click="selectRole('owner', 'Owner'); open = false"
+                                class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ request('role') == 'owner' ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">
+                            Owner
+                        </button>
+                        <button type="button" @click="selectRole('admin', 'Admin'); open = false"
+                                class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ request('role') == 'admin' ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">
+                            Admin
+                        </button>
+                        <button type="button" @click="selectRole('cashier', 'Kasir'); open = false"
+                                class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ request('role') == 'cashier' ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">
+                            Kasir
+                        </button>
+                    </div>
+                    <input type="hidden" name="role" id="roleInput" value="{{ request('role') }}">
+                </div>
+
+                <!-- Status Dropdown -->
+                <div class="relative" x-data="{ open: false }" style="z-index: 50;">
+                    <button type="button" @click="open = !open" @click.away="open = false"
+                            class="flex items-center justify-between min-w-[160px] pl-4 pr-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm font-bold focus:border-accent-500 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all hover:bg-white">
+                        <span id="statusText">{{ request('status') !== null ? (request('status') == '1' ? 'Aktif' : 'Nonaktif') : 'Semua Status' }}</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300" :class="{'rotate-180': open}"></i>
+                    </button>
+                    <div x-show="open" x-transition 
+                         class="absolute z-50 mt-2 w-full rounded-2xl bg-white dark:bg-navy-900 p-2 shadow-2xl border border-slate-100 dark:border-white/10 max-h-64 overflow-y-auto"
+                         style="top: 100%;">
+                        <button type="button" @click="selectStatus('', 'Semua Status'); open = false"
+                                class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ request('status') === null ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">
+                            Semua Status
+                        </button>
+                        <button type="button" @click="selectStatus('1', 'Aktif'); open = false"
+                                class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ request('status') == '1' ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">
+                            Aktif
+                        </button>
+                        <button type="button" @click="selectStatus('0', 'Nonaktif'); open = false"
+                                class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ request('status') === '0' ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">
+                            Nonaktif
+                        </button>
+                    </div>
+                    <input type="hidden" name="status" id="statusInput" value="{{ request('status') }}">
+                </div>
+
+                <button type="button" onclick="filterUsers()" class="bg-accent-500 text-white rounded-xl px-5 py-2.5 text-sm font-black uppercase tracking-widest hover:bg-accent-600 shadow-lg shadow-accent-500/30 transition-all active:scale-95">
+                    <i data-lucide="filter" class="inline h-4 w-4 mr-2"></i>Filter
+                </button>
+                <button type="button" onclick="resetFilter()" class="flex items-center justify-center px-4 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-white/10 dark:text-slate-400 transition-all">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Users Table -->
+        <div id="userTableWrapper">
+            @include('admin.users.partials.table')
+        </div>
+
     </div>
+</div>
 
-    @push('styles')
-        <style>
-            @keyframes fade-in-up {
-                from {
-                    opacity: 0;
-                    transform: translateY(30px);
+<x-alert-modal />
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    lucide.createIcons();
+    initUserAjax();
+    
+    @if(session('success'))
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('alert-modal', {
+                detail: {
+                    type: 'success',
+                    title: 'Berhasil!',
+                    message: '{{ session('success') }}'
                 }
-
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
+            }));
+        }, 100);
+    @endif
+    
+    @if(session('error'))
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('alert-modal', {
+                detail: {
+                    type: 'error',
+                    title: 'Gagal!',
+                    message: '{{ session('error') }}'
                 }
+            }));
+        }, 100);
+    @endif
+});
+
+function initUserAjax() {
+    const tableWrapper = document.getElementById('userTableWrapper');
+    if (!tableWrapper) return;
+
+    tableWrapper.addEventListener('click', function(event) {
+        const link = event.target.closest('a.ajax-link');
+        if (!link) return;
+        
+        event.preventDefault();
+        const url = new URL(link.href, window.location.origin);
+        fetchUserTable(url.searchParams.toString());
+    });
+
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        let debounceTimer;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                filterUsers();
+            }, 500);
+        });
+    }
+}
+
+function selectRole(value, text) {
+    document.getElementById('roleInput').value = value;
+    document.getElementById('roleText').textContent = text;
+    filterUsers();
+}
+
+function selectStatus(value, text) {
+    document.getElementById('statusInput').value = value;
+    document.getElementById('statusText').textContent = text;
+    filterUsers();
+}
+
+function filterUsers() {
+    const search = document.getElementById('searchInput').value;
+    const role = document.getElementById('roleInput').value;
+    const status = document.getElementById('statusInput').value;
+    
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (role) params.append('role', role);
+    if (status !== '') params.append('status', status);
+    
+    fetchUserTable(params.toString());
+}
+
+function resetFilter() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('roleInput').value = '';
+    document.getElementById('statusInput').value = '';
+    document.getElementById('roleText').textContent = 'Semua Role';
+    document.getElementById('statusText').textContent = 'Semua Status';
+    fetchUserTable('');
+}
+
+async function fetchUserTable(queryString) {
+    const tableWrapper = document.getElementById('userTableWrapper');
+    if (!tableWrapper) return;
+
+    tableWrapper.style.opacity = '0.5';
+    tableWrapper.style.pointerEvents = 'none';
+    
+    try {
+        const response = await fetch('{{ route('admin.users.index') }}?' + queryString, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'text/html',
+                'Content-Type': 'application/json'
             }
-
-            @keyframes fade-in-down {
-                from {
-                    opacity: 0;
-                    transform: translateY(-30px);
-                }
-
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
+        });
+        
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const tableContent = doc.querySelector('#userTableWrapper');
+        
+        if (tableContent) {
+            tableWrapper.innerHTML = tableContent.innerHTML;
+            lucide.createIcons();
+            initUserAjax();
+        }
+    } catch (error) {
+        console.error('Error loading user data:', error);
+        window.dispatchEvent(new CustomEvent('alert-modal', {
+            detail: {
+                type: 'error',
+                title: 'Error',
+                message: 'Terjadi kesalahan saat memuat data'
             }
+        }));
+    } finally {
+        tableWrapper.style.opacity = '1';
+        tableWrapper.style.pointerEvents = 'auto';
+    }
+}
 
-            .animate-fade-in-up {
-                animation: fade-in-up 0.6s ease-out forwards;
-                opacity: 0;
+function deleteUser(id) {
+    window.dispatchEvent(new CustomEvent('alert-modal', {
+        detail: {
+            type: 'confirm',
+            title: 'Hapus User',
+            message: 'Yakin ingin menghapus user ini?',
+            confirmText: 'Ya, Hapus',
+            cancelText: 'Batalkan',
+            onConfirm: () => {
+                fetch(`/admin/users/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.dispatchEvent(new CustomEvent('alert-modal', {
+                            detail: {
+                                type: 'success',
+                                title: 'Berhasil!',
+                                message: 'User berhasil dihapus'
+                            }
+                        }));
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        window.dispatchEvent(new CustomEvent('alert-modal', {
+                            detail: {
+                                type: 'error',
+                                title: 'Gagal!',
+                                message: data.message || 'Gagal menghapus user'
+                            }
+                        }));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    window.dispatchEvent(new CustomEvent('alert-modal', {
+                        detail: {
+                            type: 'error',
+                            title: 'Error',
+                            message: 'Terjadi kesalahan saat menghapus user'
+                        }
+                    }));
+                });
             }
+        }
+    }));
+}
+</script>
+@endpush
 
-            .animate-fade-in-down {
-                animation: fade-in-down 0.6s ease-out forwards;
-            }
-        </style>
-    @endpush
-
-    @push('scripts')
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                lucide.createIcons();
-            });
-        </script>
-    @endpush
+@push('styles')
+<style>
+@keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in-down {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; opacity: 0; }
+.animate-fade-in-down { animation: fade-in-down 0.6s ease-out forwards; }
+</style>
+@endpush
 @endsection
