@@ -10,7 +10,7 @@
                     <i data-lucide="arrow-left" class="w-5 h-5 text-slate-600 dark:text-slate-400"></i>
                 </a>
                 <div>
-                    <h1 class="text-3xl font-bold bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent">
+                    <h1 class="text-3xl font-bold text-navy-900 dark:text-white">
                         Tambah Produk Baru
                     </h1>
                     <p class="text-slate-600 dark:text-slate-400">Lengkapi form di bawah untuk menambahkan produk</p>
@@ -19,12 +19,33 @@
 
             <!-- Form -->
             <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data" 
+                  id="createProductForm"
                   x-data="{ 
                       imagePreview: null,
                       generateSKU: false,
                       generateBarcode: false,
-                      showAdvanced: false
+                      showAdvanced: false,
+                      confirmCreate() {
+                          Swal.fire({
+                              title: 'Gas nambah produk, King?',
+                              text: 'Cek lagi datanya, kalau udah mantap tinggal sikat, King!',
+                              icon: 'question',
+                              showCancelButton: true,
+                              confirmButtonColor: '#10b981',
+                              cancelButtonColor: '#64748b',
+                              confirmButtonText: 'Yakin',
+                              cancelButtonText: 'Ntar dulu',
+                              reverseButtons: true,
+                              background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+                              color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#0f172a',
+                          }).then((result) => {
+                              if (result.isConfirmed) {
+                                  document.getElementById('createProductForm').submit();
+                              }
+                          });
+                      }
                   }"
+                  @submit.prevent="confirmCreate()"
                   class="space-y-6 animate-fade-in-up" style="animation-delay: 0.1s;">
                 @csrf
 
@@ -306,13 +327,23 @@
             const file = event.target.files[0];
             if (file) {
                 if (file.size > 2 * 1024 * 1024) {
-                    alert('Ukuran gambar maksimal 2MB!');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Kegedean Boss!',
+                        text: 'File gambarnya jangan lebih dari 2MB ya.',
+                        confirmButtonColor: '#ef4444'
+                    });
                     event.target.value = '';
                     return;
                 }
 
                 if (!file.type.startsWith('image/')) {
-                    alert('Hanya file gambar yang diperbolehkan!');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Salah Kamar!',
+                        text: 'Cuma boleh file gambar aja nih.',
+                        confirmButtonColor: '#f59e0b'
+                    });
                     event.target.value = '';
                     return;
                 }
@@ -329,7 +360,12 @@
             const file = event.dataTransfer.files[0];
             if (file && file.type.startsWith('image/')) {
                 if (file.size > 2 * 1024 * 1024) {
-                    alert('Ukuran gambar maksimal 2MB!');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Kegedean Boss!',
+                        text: 'File gambarnya jangan lebih dari 2MB ya.',
+                        confirmButtonColor: '#ef4444'
+                    });
                     return;
                 }
                 this.$refs.imageInput.files = event.dataTransfer.files;

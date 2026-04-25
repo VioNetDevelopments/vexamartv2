@@ -16,7 +16,7 @@
                 <div>
                     <div class="flex items-center gap-3 mb-2">
                         <h1
-                            class="text-3xl font-bold bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent">
+                            class="text-3xl font-bold text-navy-900 dark:text-white">
                             Dashboard
                         </h1>
                         <span

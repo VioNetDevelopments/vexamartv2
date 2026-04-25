@@ -12,7 +12,7 @@
                 </a>
                 <div>
                     <h1
-                        class="text-3xl font-bold bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent">
+                        class="text-3xl font-bold text-navy-900 dark:text-white">
                         Stok Masuk
                     </h1>
                     <p class="text-slate-600 dark:text-slate-400">Catat penerimaan stok baru dari supplier</p>

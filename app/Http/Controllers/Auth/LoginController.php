@@ -75,6 +75,7 @@ class LoginController extends Controller
         return match($role) {
             'owner', 'admin' => route('admin.dashboard'),
             'cashier' => route('cashier.pos'),
+            'customer' => route('customer.home'),
             default => route('admin.dashboard'),
         };
     }

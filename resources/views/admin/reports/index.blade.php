@@ -31,7 +31,7 @@
                             <i data-lucide="bar-chart-3" class="w-6 h-6 text-white"></i>
                         </div>
                         <div>
-                            <h1 class="text-3xl font-black bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent tracking-tight">
+                            <h1 class="text-3xl font-black text-navy-900 dark:text-white tracking-tight">
                                 Laporan Penjualan
                             </h1>
                             <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Analisis performa toko Anda</p>
@@ -637,25 +637,18 @@ function renderSalesChart(data) {
     const gradientFill = createBlueGradient(ctx.getContext('2d'));
     
     salesChart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
             labels: data.labels,
             datasets: [{
                 label: 'Penjualan',
                 data: data.data,
-                borderColor: '#2563EB',
-                backgroundColor: gradientFill,
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#fff',
-                pointBorderColor: '#2563EB',
-                pointBorderWidth: 2,
-                pointRadius: 0,
-                pointHoverRadius: 6,
-                pointHoverBackgroundColor: '#2563EB',
-                pointHoverBorderColor: '#fff',
-                pointHoverBorderWidth: 3
+                backgroundColor: '#3B82F6',
+                hoverBackgroundColor: '#2563EB',
+                borderRadius: 8,
+                borderSkipped: false,
+                barThickness: 'flex',
+                maxBarThickness: 40
             }]
         },
         options: {

@@ -18,7 +18,7 @@
                             <i data-lucide="users" class="w-6 h-6 text-white"></i>
                         </div>
                         <div>
-                            <h1 class="text-3xl font-black bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent tracking-tight">
+                            <h1 class="text-3xl font-black text-navy-900 dark:text-white tracking-tight">
                                 Manajemen User
                             </h1>
                             <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Kelola akses dan peran pengguna sistem</p>
@@ -190,7 +190,7 @@
     </div>
 </div>
 
-<x-alert-modal />
+
 
 @push('scripts')
 <script>
@@ -325,60 +325,7 @@ async function fetchUserTable(queryString) {
     }
 }
 
-function deleteUser(id) {
-    window.dispatchEvent(new CustomEvent('alert-modal', {
-        detail: {
-            type: 'confirm',
-            title: 'Hapus User',
-            message: 'Yakin ingin menghapus user ini?',
-            confirmText: 'Ya, Hapus',
-            cancelText: 'Batalkan',
-            onConfirm: () => {
-                fetch(`/admin/users/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        window.dispatchEvent(new CustomEvent('alert-modal', {
-                            detail: {
-                                type: 'success',
-                                title: 'Berhasil!',
-                                message: 'User berhasil dihapus'
-                            }
-                        }));
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
-                    } else {
-                        window.dispatchEvent(new CustomEvent('alert-modal', {
-                            detail: {
-                                type: 'error',
-                                title: 'Gagal!',
-                                message: data.message || 'Gagal menghapus user'
-                            }
-                        }));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    window.dispatchEvent(new CustomEvent('alert-modal', {
-                        detail: {
-                            type: 'error',
-                            title: 'Error',
-                            message: 'Terjadi kesalahan saat menghapus user'
-                        }
-                    }));
-                });
-            }
-        }
-    }));
-}
+
 </script>
 @endpush
 

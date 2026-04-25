@@ -25,7 +25,7 @@ class CategoryController extends Controller
 
         Category::create($validated);
 
-        return back()->with('success', 'Kategori berhasil ditambahkan!');
+        return back()->with('success', 'Sip! Kategori barunya udah nambah.');
     }
 
     public function update(Request $request, Category $category)
@@ -39,12 +39,12 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
-        return back()->with('success', 'Kategori berhasil diupdate!');
+        return back()->with('success', 'Mantap! Kategori udah kita update.');
     }
 
     public function destroy(Category $category)
     {
         $category->delete();
-        return back()->with('success', 'Kategori berhasil dihapus!');
+        return back()->with('success', 'Beres! Kategorinya udah ilang.');
     }
 }

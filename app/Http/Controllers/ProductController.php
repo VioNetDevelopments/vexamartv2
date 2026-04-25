@@ -55,11 +55,6 @@ class ProductController extends Controller
         
         $categories = Category::where('is_active', true)->get();
         
-        // Return partial view for AJAX requests
-        if ($request->ajax()) {
-            return view('admin.products.partials.grid', compact('products'));
-        }
-        
         return view('admin.products.index', compact('products', 'categories'));
     }
 
@@ -94,10 +89,13 @@ class ProductController extends Controller
             $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
-        Product::create($validated);
+        $product = Product::create($validated);
+
+        // Trigger Notification
+        \App\Models\CashierNotification::createProductNotification(Auth::id(), $product, 'created');
 
         return redirect()->route('admin.products.index')
-            ->with('success', 'Produk berhasil ditambahkan!');
+            ->with('success', 'Sip! Produk baru udah masuk ke katalog.');
     }
 
     /**
@@ -145,6 +143,9 @@ class ProductController extends Controller
             // Update product
             $product->update($validated);
 
+            // Trigger Notification
+            \App\Models\CashierNotification::createProductNotification(Auth::id(), $product, 'updated');
+
             // Create stock movement record if stock changed
             if ($stockChanged) {
                 StockMovement::create([
@@ -161,7 +162,7 @@ class ProductController extends Controller
             DB::commit();
 
             return redirect()->route('admin.products.index')
-                ->with('success', 'Produk berhasil diupdate!');
+                ->with('success', 'Mantap! Datanya udah kita perbarui ya.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -180,10 +181,15 @@ class ProductController extends Controller
             Storage::disk('public')->delete($product->image);
         }
 
+        // Capture info before delete
+        $productInfo = clone $product;
         $product->delete();
 
+        // Trigger Notification
+        \App\Models\CashierNotification::createProductNotification(Auth::id(), $productInfo, 'deleted');
+
         return redirect()->route('admin.products.index')
-            ->with('success', 'Produk berhasil dihapus!');
+            ->with('success', 'Beres! Produknya udah kita hapus dari sistem.');
     }
 
     /**
@@ -193,7 +199,7 @@ class ProductController extends Controller
     {
         $product->update(['is_active' => !$product->is_active]);
 
-        return back()->with('success', 'Status produk berhasil diubah!');
+        return back()->with('success', 'Oke! Status produknya udah kita ganti.');
     }
 
     /**

@@ -16,7 +16,7 @@
                     <i data-lucide="settings" class="w-6 h-6 text-white"></i>
                 </div>
                 <div>
-                    <h1 class="text-3xl font-black bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent tracking-tight">
+                    <h1 class="text-3xl font-black text-navy-900 dark:text-white tracking-tight">
                         Pengaturan Toko
                     </h1>
                     <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Kelola informasi toko dan pengaturan sistem</p>
@@ -208,11 +208,11 @@
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Diskon Default (%)</label>
+                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Diskon Default (Rp)</label>
                                 <div class="relative">
-                                    <input type="number" name="default_discount" value="{{ $settings['default_discount'] ?? 0 }}" min="0" max="100" step="0.01"
+                                    <input type="number" name="default_discount" value="{{ $settings['default_discount'] ?? 0 }}" min="0" step="1"
                                         class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium focus:border-accent-500 focus:ring-4 focus:ring-accent-500/10 dark:border-white/10 dark:bg-navy-800 dark:text-white transition-all">
-                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">%</span>
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">Rp</span>
                                 </div>
                             </div>
                         </div>
@@ -235,6 +235,30 @@
                             <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Tampilkan QR Code di struk</label>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Payment Providers Section -->
+            <div class="bg-white dark:bg-navy-900 rounded-3xl p-6 shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-white/5">
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-white/10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                            <i data-lucide="wallet" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-black text-navy-900 dark:text-white">Daftar Bank & E-Wallet</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Kelola pilihan pembayaran untuk kasir</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="openAddProviderModal()"
+                        class="px-4 py-2 rounded-xl bg-accent-500 hover:bg-accent-600 text-white text-xs font-bold transition-all flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Tambah Provider
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="providersList">
+                    <!-- Dynamic Content via JS -->
                 </div>
             </div>
 
@@ -359,18 +383,29 @@ const indonesianCities = [
 ];
 
 function resetLogo() {
-    if (confirm('Yakin ingin menghapus logo dan kembali ke logo default?')) {
-        document.getElementById('resetLogoForm').submit();
-    }
+    confirmAction({
+        title: 'Hapus Logo, King?',
+        text: 'Yakin mau hapus logo dan balik ke logo default?',
+        icon: 'warning',
+        confirmColor: '#ef4444',
+        confirmText: 'Ya, Hapus!',
+        callback: () => document.getElementById('resetLogoForm').submit()
+    });
 }
 
 function confirmReset() {
-    if (confirm('Yakin ingin mereset form? Semua perubahan yang belum disimpan akan hilang.')) {
-        document.getElementById('settingsForm').reset();
-        // Reload cities dropdown
-        loadCitiesToDropdown('companyCity', "{{ $settings['company_city'] ?? '' }}");
-        loadCitiesToDropdown('storeCity', "{{ $settings['store_city'] ?? '' }}");
-    }
+    confirmAction({
+        title: 'Reset Form, King?',
+        text: 'Semua perubahan yang belum disimpan bakal ilang nih!',
+        icon: 'info',
+        confirmColor: '#64748b',
+        confirmText: 'Ya, Reset',
+        callback: () => {
+            document.getElementById('settingsForm').reset();
+            loadCitiesToDropdown('companyCity', "{{ $settings['company_city'] ?? '' }}");
+            loadCitiesToDropdown('storeCity', "{{ $settings['store_city'] ?? '' }}");
+        }
+    });
 }
 
 function loadCitiesToDropdown(selectId, selectedValue) {
@@ -440,23 +475,151 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Load Payment Providers
+    function loadProviders() {
+        fetch('{{ route('admin.payment-providers.index') }}')
+            .then(r => r.json())
+            .then(providers => {
+                const container = document.getElementById('providersList');
+                if (!container) return;
+                
+                container.innerHTML = providers.map(p => `
+                    <div class="p-4 rounded-2xl border-2 ${p.is_active ? 'border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-navy-800/30' : 'border-dashed border-slate-200 dark:border-white/10 opacity-60'} transition-all hover:border-accent-500/30">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-10 h-10 rounded-xl bg-white dark:bg-navy-700 shadow-sm flex items-center justify-center font-bold text-xs uppercase text-slate-400">
+                                ${p.name.substring(0, 3)}
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="toggleProvider(${p.id})" class="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors ${p.is_active ? 'text-success' : 'text-slate-400'}">
+                                    <i data-lucide="${p.is_active ? 'eye' : 'eye-off'}" class="w-4 h-4"></i>
+                                </button>
+                                <button type="button" onclick="deleteProvider(${p.id})" class="p-1.5 rounded-lg hover:bg-danger/10 text-danger opacity-0 group-hover:opacity-100 transition-all">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <h4 class="font-bold text-sm text-navy-900 dark:text-white mb-0.5">${p.name}</h4>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">${p.type === 'bank' ? 'Transfer Bank' : 'E-Wallet'}</p>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                            <p>${p.account_number || '-'}</p>
+                            <p class="truncate">${p.account_name || '-'}</p>
+                        </div>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            });
+    }
+
+    window.toggleProvider = function(id) {
+        fetch(\`/admin/payment-providers/\${id}/toggle\`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+        }).then(r => r.json()).then(data => {
+            if (data.success) loadProviders();
+        });
+    }
+
+    window.deleteProvider = function(id) {
+        confirmAction({
+            title: 'Hapus Provider?',
+            text: 'Provider ini bakal diapus permanen dari pilihan kasir!',
+            icon: 'warning',
+            confirmColor: '#ef4444',
+            confirmText: 'Ya, Hapus',
+            callback: () => {
+                fetch(\`/admin/payment-providers/\${id}\`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+                }).then(r => r.json()).then(data => {
+                    if (data.success) {
+                        toast('Berhasil!', 'Provider udah diapus, King.', 'success');
+                        loadProviders();
+                    }
+                });
+            }
+        });
+    }
+
+    window.openAddProviderModal = function() {
+        Swal.fire({
+            title: 'Tambah Provider Baru',
+            html: \`
+                <div class="space-y-4 text-left p-2">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nama Provider</label>
+                        <input id="swal-name" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-4 focus:ring-accent-500/10 outline-none" placeholder="Contoh: BCA, DANA, OVO">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tipe</label>
+                        <select id="swal-type" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none">
+                            <option value="bank">Transfer Bank</option>
+                            <option value="ewallet">E-Wallet</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nomor Rekening/HP</label>
+                        <input id="swal-account" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-4 focus:ring-accent-500/10 outline-none" placeholder="123456789">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nama Pemilik</label>
+                        <input id="swal-holder" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-4 focus:ring-accent-500/10 outline-none" placeholder="VEXAMART STORE">
+                    </div>
+                </div>
+            \`,
+            showCancelButton: true,
+            confirmButtonText: 'Simpan Provider',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#3b82f6',
+            preConfirm: () => {
+                return {
+                    name: document.getElementById('swal-name').value,
+                    type: document.getElementById('swal-type').value,
+                    account_number: document.getElementById('swal-account').value,
+                    account_name: document.getElementById('swal-holder').value
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('{{ route('admin.payment-providers.store') }}', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json' 
+                    },
+                    body: JSON.stringify(result.value)
+                }).then(r => r.json()).then(data => {
+                    if (data.success) {
+                        toast('Mantap!', 'Provider baru udah terdaftar!', 'success');
+                        loadProviders();
+                    }
+                });
+            }
+        });
+    }
+
+    loadProviders();
+
     // Form submission with confirmation
     const settingsForm = document.getElementById('settingsForm');
     if (settingsForm) {
         settingsForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            if (confirm('Yakin ingin menyimpan pengaturan? Pastikan semua data sudah benar.')) {
-                // Show loading state
-                const submitBtn = this.querySelector('button[type="submit"]');
-                const originalContent = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Menyimpan...</span>';
-                submitBtn.disabled = true;
-                lucide.createIcons();
-                
-                // Submit form
-                this.submit();
-            }
+            confirmAction({
+                title: 'Simpan Pengaturan, King?',
+                text: 'Pastikan semua data sudah benar ya!',
+                icon: 'question',
+                confirmColor: '#3b82f6',
+                confirmText: 'Ya, Simpan!',
+                callback: () => {
+                    const submitBtn = settingsForm.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Menyimpan...</span>';
+                    submitBtn.disabled = true;
+                    lucide.createIcons();
+                    settingsForm.submit();
+                }
+            });
         });
     }
 });

@@ -7,7 +7,7 @@
     <div class="relative max-w-7xl mx-auto space-y-6">
         <!-- Header -->
         <div class="animate-fade-in-down">
-            <h1 class="text-3xl font-bold bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent">
+            <h1 class="text-3xl font-bold text-navy-900 dark:text-white">
                 Cek Stok Produk
             </h1>
             <p class="text-slate-600 dark:text-slate-400">Pantau ketersediaan stok semua produk</p>

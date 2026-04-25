@@ -11,7 +11,7 @@
                     <i data-lucide="arrow-left" class="w-5 h-5 text-slate-600 dark:text-slate-400"></i>
                 </a>
                 <div>
-                    <h1 class="text-3xl font-black bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent tracking-tight">
+                    <h1 class="text-3xl font-black text-navy-900 dark:text-white tracking-tight">
                         Detail Invoice
                     </h1>
                     <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Informasi lengkap transaksi</p>

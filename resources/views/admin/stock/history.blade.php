@@ -11,7 +11,7 @@
                     <i data-lucide="arrow-left" class="w-5 h-5 text-slate-600 dark:text-slate-400"></i>
                 </a>
                 <div>
-                    <h1 class="text-3xl font-bold bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent">
+                    <h1 class="text-3xl font-bold text-navy-900 dark:text-white">
                         Riwayat Pergerakan Stok
                     </h1>
                     <p class="text-slate-600 dark:text-slate-400">Audit trail semua perubahan stok</p>

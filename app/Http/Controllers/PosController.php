@@ -10,6 +10,7 @@ use App\Models\CashLog;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\CashierNotification;
+use App\Models\PaymentProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -41,7 +42,10 @@ class PosController extends Controller
             ->where('payment_status', 'paid')
             ->count();
         
-        return view('cashier.pos', compact('categories', 'customers', 'shift', 'todaySales', 'todayTransactions'));
+        $banks = PaymentProvider::where('type', 'bank')->where('is_active', true)->orderBy('sort_order')->get();
+        $ewallets = PaymentProvider::where('type', 'ewallet')->where('is_active', true)->orderBy('sort_order')->get();
+        
+        return view('cashier.pos', compact('categories', 'customers', 'shift', 'todaySales', 'todayTransactions', 'banks', 'ewallets'));
     }
 
     /**
@@ -109,8 +113,9 @@ class PosController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.qty' => 'required|integer|min:1',
             'items.*.price' => 'required|numeric|min:0',
-            'discount' => 'nullable|numeric|min:0|max:100',
-            'payment_method' => 'required|in:cash,qris,debit,ewallet',
+            'discount' => 'nullable|numeric|min:0',
+            'payment_method' => 'required|in:cash,qris,debit,ewallet,card,bank',
+            'payment_provider' => 'nullable|string',
             'paid_amount' => 'required|numeric|min:0',
         ], [
             'items.required' => 'Minimal harus ada 1 produk',
@@ -149,11 +154,15 @@ class PosController extends Controller
                 return $item['price'] * $item['qty'];
             });
             
-            $discount = $validated['discount'] ?? 0;
-            $discountAmount = ($subtotal * $discount) / 100;
+            $discountAmount = $validated['discount'] ?? 0;
             $taxRate = SettingHelper::get('tax_rate', 0);
-            $tax = (($subtotal - $discountAmount) * $taxRate) / 100;
-            $grandTotal = $subtotal - $discountAmount + $tax;
+            
+            // Grand Total should match frontend: subtotal - discount
+            $grandTotal = $subtotal - $discountAmount;
+            
+            // Tax is usually included in the price or calculated from subtotal
+            // For report purposes, we keep the tax amount calculation
+            $tax = ($grandTotal * $taxRate) / (100 + $taxRate);
             
             // VALIDASI PEMBAYARAN
             if ($validated['paid_amount'] < $grandTotal) {
@@ -177,6 +186,7 @@ class PosController extends Controller
                 'tax' => $tax,
                 'grand_total' => $grandTotal,
                 'payment_method' => $validated['payment_method'],
+                'payment_provider' => $request->payment_provider,
                 'paid_amount' => $validated['paid_amount'],
                 'change_amount' => $changeAmount,
                 'payment_status' => 'paid',
@@ -220,6 +230,16 @@ class PosController extends Controller
             }
 
             DB::commit();
+
+            // Trigger Notifications
+            CashierNotification::createPaymentNotification(Auth::id(), $transaction);
+            
+            // Check for low stock and notify
+            foreach ($transaction->items as $item) {
+                if ($item->product->stock <= $item->product->min_stock) {
+                    CashierNotification::createLowStockNotification(Auth::id(), $item->product);
+                }
+            }
 
             return response()->json([
                 'success' => true,

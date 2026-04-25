@@ -101,13 +101,15 @@ class StockController extends Controller
                 'qty' => $validated['quantity'],
                 'reason' => $validated['reason'],
                 'stock_before' => $oldStock,
-                'stock_after' => $newStock,
             ]);
+
+            // Trigger Notification
+            \App\Models\CashierNotification::createProductNotification(Auth::id(), $product, 'updated');
 
             DB::commit();
 
             return redirect()->route('admin.stock.index')
-                ->with('success', 'Stok berhasil diupdate!');
+                ->with('success', 'Sip! Stoknya udah kita update sesuai penyesuaian tadi.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -162,8 +164,11 @@ class StockController extends Controller
                 'stock_after' => $newStock,
             ]);
 
+            // Trigger Notification
+            \App\Models\CashierNotification::createProductNotification(Auth::id(), $product, 'updated');
+
             DB::commit();
-            return redirect()->route('admin.stock.index')->with('success', 'Stok masuk berhasil dicatat!');
+            return redirect()->route('admin.stock.index')->with('success', 'Beres! Stok masuk udah berhasil kita catat.');
 
         } catch (\Exception $e) {
             DB::rollBack();

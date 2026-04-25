@@ -20,8 +20,27 @@ class DashboardController extends Controller
         // Today's stats
         $todaySales = Transaction::whereDate('created_at', today())
             ->sum('grand_total');
-
         $todayTransactions = Transaction::whereDate('created_at', today())->count();
+
+        // Yesterday's stats for comparison
+        $yesterdaySales = Transaction::whereDate('created_at', today()->subDay())
+            ->sum('grand_total');
+        $yesterdayTransactions = Transaction::whereDate('created_at', today()->subDay())->count();
+
+        // Calculate growth percentages
+        $salesGrowth = 0;
+        if ($yesterdaySales > 0) {
+            $salesGrowth = (($todaySales - $yesterdaySales) / $yesterdaySales) * 100;
+        } elseif ($todaySales > 0) {
+            $salesGrowth = 100;
+        }
+
+        $transactionsGrowth = 0;
+        if ($yesterdayTransactions > 0) {
+            $transactionsGrowth = (($todayTransactions - $yesterdayTransactions) / $yesterdayTransactions) * 100;
+        } elseif ($todayTransactions > 0) {
+            $transactionsGrowth = 100;
+        }
 
         // Low stock products
         $lowStockProducts = Product::whereColumn('stock', '<=', 'min_stock')
@@ -33,7 +52,9 @@ class DashboardController extends Controller
 
         $stats = [
             'today_sales' => $todaySales,
+            'sales_growth' => $salesGrowth,
             'today_transactions' => $todayTransactions,
+            'transactions_growth' => $transactionsGrowth,
             'low_stock_products' => $lowStockProducts,
             'total_products' => $totalProducts,
         ];
@@ -130,6 +151,8 @@ class DashboardController extends Controller
             'qris' => $paymentData->firstWhere('payment_method', 'qris')->total ?? 0,
             'debit' => $paymentData->firstWhere('payment_method', 'debit')->total ?? 0,
             'ewallet' => $paymentData->firstWhere('payment_method', 'ewallet')->total ?? 0,
+            'card' => $paymentData->firstWhere('payment_method', 'card')->total ?? 0,
+            'bank' => $paymentData->firstWhere('payment_method', 'bank')->total ?? 0,
         ];
 
         return response()->json($result);
@@ -166,5 +189,42 @@ class DashboardController extends Controller
             ->paginate($perPage, ['*'], 'page', $page);
 
         return response()->json($transactions);
+    }
+
+    public function liveStats()
+    {
+        $todaySales = Transaction::whereDate('created_at', today())->sum('grand_total');
+        $todayTransactions = Transaction::whereDate('created_at', today())->count();
+
+        $yesterdaySales = Transaction::whereDate('created_at', today()->subDay())->sum('grand_total');
+        $yesterdayTransactions = Transaction::whereDate('created_at', today()->subDay())->count();
+
+        $salesGrowth = 0;
+        if ($yesterdaySales > 0) {
+            $salesGrowth = (($todaySales - $yesterdaySales) / $yesterdaySales) * 100;
+        } elseif ($todaySales > 0) {
+            $salesGrowth = 100;
+        }
+
+        $transactionsGrowth = 0;
+        if ($yesterdayTransactions > 0) {
+            $transactionsGrowth = (($todayTransactions - $yesterdayTransactions) / $yesterdayTransactions) * 100;
+        } elseif ($todayTransactions > 0) {
+            $transactionsGrowth = 100;
+        }
+
+        $lowStockProducts = Product::whereColumn('stock', '<=', 'min_stock')
+            ->where('stock', '>', 0)
+            ->count();
+        $totalProducts = Product::count();
+
+        return response()->json([
+            'today_sales' => $todaySales,
+            'sales_growth' => round($salesGrowth, 1),
+            'today_transactions' => $todayTransactions,
+            'transactions_growth' => round($transactionsGrowth, 1),
+            'low_stock_products' => $lowStockProducts,
+            'total_products' => $totalProducts,
+        ]);
     }
 }

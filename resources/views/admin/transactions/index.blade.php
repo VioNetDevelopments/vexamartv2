@@ -9,7 +9,7 @@
                 <i data-lucide="receipt" class="w-7 h-7 text-white"></i>
             </div>
             <div>
-                <h1 class="text-3xl font-black bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent tracking-tight">Riwayat Transaksi</h1>
+                <h1 class="text-3xl font-black text-navy-900 dark:text-white tracking-tight">Riwayat Transaksi</h1>
                 <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total <span class="text-accent-500 font-bold">{{ $transactions->total() }}</span> transaksi tercatat di sistem</p>
             </div>
         </div>
@@ -158,20 +158,29 @@
         <div class="group relative bg-white dark:bg-navy-900 p-6 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-black/20 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1.5 overflow-hidden border border-white dark:border-white/5">
             <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-warning/5 to-transparent rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
             <div class="relative flex items-center gap-4">
+                @php
+                    $popularMethodData = \Illuminate\Support\Facades\DB::table('transactions')
+                        ->select('payment_method', \Illuminate\Support\Facades\DB::raw('COUNT(*) as count'))
+                        ->groupBy('payment_method')
+                        ->orderByDesc('count')
+                        ->first();
+                    
+                    $method = $popularMethodData ? $popularMethodData->payment_method : 'cash';
+                    $icons = [
+                        'cash' => 'banknote',
+                        'qris' => 'qr-code',
+                        'debit' => 'credit-card',
+                        'ewallet' => 'wallet'
+                    ];
+                    $icon = $icons[$method] ?? 'zap';
+                @endphp
                 <div class="w-12 h-12 rounded-2xl bg-warning/5 flex items-center justify-center text-warning">
-                    <i data-lucide="zap" class="w-6 h-6"></i>
+                    <i data-lucide="{{ $icon }}" class="w-6 h-6"></i>
                 </div>
                 <div>
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Metode Utama</p>
                     <h3 class="text-2xl font-black text-navy-900 dark:text-white tracking-tight">
-                        @php
-                            $popularMethod = \Illuminate\Support\Facades\DB::table('transactions')
-                                ->select('payment_method', \Illuminate\Support\Facades\DB::raw('COUNT(*) as count'))
-                                ->groupBy('payment_method')
-                                ->orderByDesc('count')
-                                ->first();
-                            echo $popularMethod ? ucfirst($popularMethod->payment_method) : '-';
-                        @endphp
+                        {{ $popularMethodData ? ucfirst($method) : '-' }}
                     </h3>
                 </div>
             </div>

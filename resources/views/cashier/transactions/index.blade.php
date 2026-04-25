@@ -75,11 +75,7 @@
                                 <span class="font-medium text-slate-700 dark:text-slate-300">{{ $transaction->customer->name ?? 'Umum' }}</span>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black uppercase
-                                    @if($transaction->payment_method === 'cash') bg-green-100 text-green-700
-                                    @elseif($transaction->payment_method === 'qris') bg-blue-100 text-blue-700
-                                    @elseif($transaction->payment_method === 'debit') bg-purple-100 text-purple-700
-                                    @else bg-orange-100 text-orange-700 @endif">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black uppercase {{ $transaction->payment_method === 'cash' ? 'bg-green-100 text-green-700' : ($transaction->payment_method === 'qris' ? 'bg-blue-100 text-blue-700' : ($transaction->payment_method === 'debit' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700')) }}">
                                     {{ ucfirst($transaction->payment_method) }}
                                 </span>
                             </td>

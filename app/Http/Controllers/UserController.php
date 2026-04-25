@@ -74,7 +74,7 @@ class UserController extends Controller
         ]);
         
         return redirect()->route('admin.users.index')
-            ->with('success', 'User berhasil ditambahkan');
+            ->with('success', 'Oke! User baru udah kita daftarin.');
     }
 
     public function edit(User $user)
@@ -104,7 +104,7 @@ class UserController extends Controller
         $user->save();
         
         return redirect()->route('admin.users.index')
-            ->with('success', 'Data user berhasil diupdate');
+            ->with('success', 'Sip! Profil user-nya udah kita perbarui.');
     }
 
     public function destroy(User $user)
@@ -121,13 +121,13 @@ class UserController extends Controller
         }
         
         return redirect()->route('admin.users.index')
-            ->with('success', 'User berhasil dihapus');
+            ->with('success', 'Beres! User-nya udah kita keluarin dari sistem.');
     }
 
     public function toggleStatus(User $user)
     {
         $user->update(['is_active' => !$user->is_active]);
         
-        return redirect()->back()->with('success', 'Status user berhasil diubah');
+        return redirect()->back()->with('success', 'Mantap! Status user-nya udah berubah.');
     }
 }

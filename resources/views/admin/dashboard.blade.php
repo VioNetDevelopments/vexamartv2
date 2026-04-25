@@ -17,18 +17,14 @@
                 <div>
                     <div class="flex items-center gap-3 mb-2">
                         <h1
-                            class="text-3xl font-bold bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent flex items-center gap-3">
+                            class="text-3xl font-bold text-navy-900 dark:text-white flex items-center gap-3">
                             <i data-lucide="layout-dashboard" class="w-8 h-8 text-accent-600"></i>
                             Dashboard
                         </h1>
                         <span
-                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800">
-                            <span class="relative flex h-2 w-2">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-500 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2 w-2 bg-accent-500"></span>
-                            </span>
-                            <i data-lucide="radio" class="w-3 h-3 text-accent-600 dark:text-accent-400"></i>
-                            <span class="text-xs font-semibold text-accent-600 dark:text-accent-400">Live</span>
+                            class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-success/10 border border-success/20">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-success"></i>
+                            <span class="text-[10px] font-bold text-success uppercase tracking-wider">System Online</span>
                         </span>
                     </div>
                     <p class="text-slate-600 dark:text-slate-400">
@@ -47,10 +43,9 @@
                         </div>
                         <div class="flex flex-col">
                             <div class="flex items-center gap-1.5 mb-0.5">
-                                <span class="h-1.5 w-1.5 rounded-full bg-accent-500 animate-pulse"></span>
                                 <p
-                                    class="text-[10px] font-black uppercase tracking-widest text-accent-600 dark:text-accent-400 leading-none">
-                                    Live Monitor</p>
+                                    class="text-[10px] font-black uppercase tracking-widest text-accent-500 leading-none">
+                                    Real-time Monitor</p>
                             </div>
                             <div class="flex items-baseline gap-2">
                                 <p class="text-sm font-bold text-navy-900 dark:text-white" id="currentDate"></p>
@@ -63,7 +58,7 @@
             </div>
 
             <!-- Stats Cards Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" x-data="liveStatsData()">
                 <!-- Card 1: Total Sales -->
                 <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl hover:shadow-accent-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden animate-fade-in-up"
                     style="animation-delay: 0.1s;">
@@ -77,13 +72,14 @@
                                 <i data-lucide="dollar-sign" class="w-6 h-6 text-white"></i>
                             </div>
                             <span
-                                class="flex items-center gap-1 text-xs font-semibold text-success bg-success/10 px-2 py-1 rounded-full">
-                                <i data-lucide="trending-up" class="w-3 h-3"></i>
-                                +12.5%
+                                class="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full transition-colors duration-300"
+                                :class="stats.sales_growth >= 0 ? 'text-success bg-success/10' : 'text-red-500 bg-red-500/10'">
+                                <i :data-lucide="stats.sales_growth >= 0 ? 'trending-up' : 'trending-down'" class="w-3 h-3"></i>
+                                <span x-text="(stats.sales_growth >= 0 ? '+' : '') + stats.sales_growth.toFixed(1) + '%'"></span>
                             </span>
                         </div>
                         <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Penjualan Hari Ini</p>
-                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2">
+                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2" x-text="'Rp ' + Number(stats.today_sales).toLocaleString('id-ID')">
                             Rp {{ number_format($stats['today_sales'] ?? 0, 0, ',', '.') }}
                         </h3>
                         <div class="flex items-center gap-2 text-xs text-slate-400">
@@ -106,13 +102,14 @@
                                 <i data-lucide="shopping-cart" class="w-6 h-6 text-white"></i>
                             </div>
                             <span
-                                class="flex items-center gap-1 text-xs font-semibold text-success bg-success/10 px-2 py-1 rounded-full">
-                                <i data-lucide="trending-up" class="w-3 h-3"></i>
-                                +5.2%
+                                class="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full transition-colors duration-300"
+                                :class="stats.transactions_growth >= 0 ? 'text-success bg-success/10' : 'text-red-500 bg-red-500/10'">
+                                <i :data-lucide="stats.transactions_growth >= 0 ? 'trending-up' : 'trending-down'" class="w-3 h-3"></i>
+                                <span x-text="(stats.transactions_growth >= 0 ? '+' : '') + stats.transactions_growth.toFixed(1) + '%'"></span>
                             </span>
                         </div>
                         <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Transaksi</p>
-                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2">
+                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2" x-text="stats.today_transactions">
                             {{ $stats['today_transactions'] ?? 0 }}
                         </h3>
                         <div class="flex items-center gap-2 text-xs text-slate-400">
@@ -134,16 +131,16 @@
                                 class="w-12 h-12 rounded-xl bg-gradient-to-br from-warning to-warning/80 flex items-center justify-center shadow-lg shadow-warning/30">
                                 <i data-lucide="alert-circle" class="w-6 h-6 text-white"></i>
                             </div>
-                            @if(($stats['low_stock_products'] ?? 0) > 0)
+                            <template x-if="stats.low_stock_products > 0">
                                 <span
                                     class="flex items-center gap-1 text-xs font-semibold text-warning bg-warning/10 px-2 py-1 rounded-full animate-pulse">
                                     <i data-lucide="bell" class="w-3 h-3"></i>
                                     Perhatian
                                 </span>
-                            @endif
+                            </template>
                         </div>
                         <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Stok Kritis</p>
-                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2">
+                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2" x-text="stats.low_stock_products">
                             {{ $stats['low_stock_products'] ?? 0 }}
                         </h3>
                         <div class="flex items-center gap-2 text-xs text-slate-400">
@@ -172,7 +169,7 @@
                             </span>
                         </div>
                         <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Produk</p>
-                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2">
+                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2" x-text="stats.total_products">
                             {{ $stats['total_products'] ?? 0 }}
                         </h3>
                         <div class="flex items-center gap-2 text-xs text-slate-400">
@@ -183,9 +180,9 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Sales Chart - Modern Card Design -->
-                <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-white/5" x-data="{ open: false }">
+                <div class="col-span-1 lg:col-span-2 bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-white/5" x-data="{ open: false }">
                     <div class="flex items-center justify-between mb-6">
                         <div>
                             <h3 class="text-lg font-bold text-navy-900 dark:text-white flex items-center gap-2">
@@ -196,17 +193,17 @@
                             </h3>
                             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1" id="chartPeriodText">7 Hari Terakhir</p>
                         </div>
-                        
+
                         <!-- 3-Dot Menu with Dropdown -->
                         <div class="relative">
-                            <button @click="open = !open" 
+                            <button @click="open = !open"
                                     class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-navy-800 transition-all duration-300 hover:scale-110"
                                     :class="open ? 'bg-accent-500 text-white rotate-90' : 'text-slate-400'">
                                 <i data-lucide="more-vertical" class="w-5 h-5 transition-transform duration-300 ease-out"></i>
                             </button>
-                            
+
                             <!-- Dropdown Menu -->
-                            <div x-show="open" 
+                            <div x-show="open"
                                  @click.away="open = false"
                                  x-transition:enter="transition ease-out duration-200"
                                  x-transition:enter-start="opacity-0 scale-95 translate-y-2"
@@ -215,57 +212,57 @@
                                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                                  x-transition:leave-end="opacity-0 scale-95 translate-y-2"
                                  class="absolute right-0 mt-2 w-44 bg-white dark:bg-navy-800 rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 py-2 z-50 overflow-hidden">
-                                
-                                <button @click="updateChart(3); open = false" 
-                                        class="w-full px-4 py-2.5 text-left text-sm hover:bg-accent-500 hover:text-white transition-all duration-200 flex items-center gap-2">
-                                    <i data-lucide="calendar" class="w-4 h-4"></i>
+
+                                <button @click="updateChart(3); open = false"
+                                    class="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-accent-500 hover:text-white transition-all duration-200 flex items-center gap-2 group">
+                                    <i data-lucide="calendar" class="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-white"></i>
                                     <span>3 Hari</span>
                                 </button>
-                                <button @click="updateChart(7); open = false" 
-                                        class="w-full px-4 py-2.5 text-left text-sm hover:bg-accent-500 hover:text-white transition-all duration-200 flex items-center gap-2">
-                                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                                <button @click="updateChart(7); open = false"
+                                    class="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-accent-500 hover:text-white transition-all duration-200 flex items-center gap-2 group">
+                                    <i data-lucide="calendar" class="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-white"></i>
                                     <span>7 Hari</span>
                                 </button>
-                                <button @click="updateChart(14); open = false" 
-                                        class="w-full px-4 py-2.5 text-left text-sm hover:bg-accent-500 hover:text-white transition-all duration-200 flex items-center gap-2">
-                                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                                <button @click="updateChart(14); open = false"
+                                    class="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-accent-500 hover:text-white transition-all duration-200 flex items-center gap-2 group">
+                                    <i data-lucide="calendar" class="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-white"></i>
                                     <span>14 Hari</span>
                                 </button>
-                                <button @click="updateChart(30); open = false" 
-                                        class="w-full px-4 py-2.5 text-left text-sm hover:bg-accent-500 hover:text-white transition-all duration-200 flex items-center gap-2">
-                                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                                <button @click="updateChart(30); open = false"
+                                    class="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-accent-500 hover:text-white transition-all duration-200 flex items-center gap-2 group">
+                                    <i data-lucide="calendar" class="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-white"></i>
                                     <span>30 Hari</span>
                                 </button>
-                                
+
                                 <!-- Divider -->
                                 <div class="border-t border-slate-200 dark:border-white/10 my-1"></div>
-                                
-                                <button @click="refreshChart(); open = false" 
-                                        class="w-full px-4 py-2.5 text-left text-sm hover:bg-accent-500 hover:text-white transition-all duration-200 flex items-center gap-2">
-                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+
+                                <button @click="refreshChart(); open = false"
+                                    class="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-accent-500 hover:text-white transition-all duration-200 flex items-center gap-2 group">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-white"></i>
                                     <span>Refresh Data</span>
                                 </button>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Chart Container -->
-                    <div class="h-80 relative">
+                    <div class="h-64 relative">
                         <canvas id="salesChart"></canvas>
-                        
+
                         <!-- Loading Animation -->
-                        <div x-show="$store.dashboardState.chartLoading" 
+                        <div x-show="$store.dashboardState.chartLoading"
                              class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-navy-900/50 backdrop-blur-sm rounded-xl">
                             <div class="flex flex-col items-center gap-3">
                                 <div class="animate-spin rounded-full h-10 w-10 border-4 border-accent-500 border-t-transparent"></div>
-                                <p class="text-sm text-slate-500">Memuat data...</p>
+                                <p class="text-sm text-slate-500 dark:text-slate-400">Memuat data...</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Payment Method Chart - Modern Card Design -->
-                <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-white/5">
+                <!-- Payment Method List -->
+                <div class="col-span-1 bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-white/5">
                     <div class="flex items-center justify-between mb-6">
                         <div>
                             <h3 class="text-lg font-bold text-navy-900 dark:text-white flex items-center gap-2">
@@ -277,42 +274,125 @@
                             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Distribusi transaksi</p>
                         </div>
                     </div>
-                    
-                    <div class="flex items-center gap-6">
-                        <!-- Doughnut Chart -->
-                        <div class="w-48 h-48 relative flex-shrink-0">
-                            <canvas id="paymentChart"></canvas>
-                            
-                            <!-- Center Text -->
-                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <div class="text-center">
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">Total</p>
-                                    <p class="text-lg font-bold text-navy-900 dark:text-white" id="paymentTotal">0</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Payment Methods List -->
-                        <div class="flex-1 space-y-3" x-data>
-                            <template x-for="method in $store.dashboardState.paymentMethods" :key="method.name">
-                                <div class="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors cursor-pointer">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-3 h-3 rounded-full" :style="'background-color: ' + method.color"></div>
-                                        <div class="flex items-center gap-2">
-                                            <i :data-lucide="method.icon" class="w-4 h-4" :style="'color: ' + method.color"></i>
-                                            <span class="text-sm font-medium text-navy-900 dark:text-white" x-text="method.name"></span>
+                    <div class="flex flex-col gap-3">
+                        <!-- Payment Methods Details -->
+                        <div class="flex-1 space-y-2 w-full" x-data="{ localMethods: [] }" @update-payment-methods.window="localMethods = $event.detail; $nextTick(() => lucide.createIcons())">
+                            <template x-for="method in localMethods" :key="method.name">
+                                <div class="group relative flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-navy-800/50 hover:bg-white dark:hover:bg-navy-800 transition-all duration-300 border border-transparent hover:border-slate-200 dark:hover:border-white/10 hover:shadow-lg hover:shadow-slate-200/40 dark:hover:shadow-black/40">
+                                    <div class="flex items-center gap-4">
+                                        <div class="relative">
+                                            <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110"
+                                                 :style="'background-color: ' + method.color + '20'">
+                                                <i :data-lucide="method.icon" class="w-5 h-5"
+                                                   :style="'color: ' + method.color"></i>
+                                            </div>
+                                            <div class="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white dark:border-navy-900"
+                                                 :style="'background-color: ' + method.color"></div>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-navy-900 dark:text-white" x-text="method.name"></h4>
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-24 h-1.5 bg-slate-200 dark:bg-navy-700 rounded-full overflow-hidden">
+                                                    <div class="h-full rounded-full transition-all duration-1000"
+                                                         :style="'width: ' + method.percentage + '%; background-color: ' + method.color"></div>
+                                                </div>
+                                                <span class="text-[10px] font-black text-slate-500" x-text="method.percentage + '%'"></span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="text-right">
-                                        <p class="text-sm font-bold text-navy-900 dark:text-white" x-text="method.percentage + '%'" ></p>
-                                        <p class="text-xs text-slate-500" x-text="method.count + ' trx'"></p>
+                                        <p class="text-sm font-black text-navy-900 dark:text-white" x-text="Number(method.count).toLocaleString('id-ID')"></p>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Transaksi</p>
                                     </div>
                                 </div>
                             </template>
+
+                            <!-- Empty State -->
+                            <div x-show="localMethods.length === 0"
+                                 class="py-8 text-center bg-slate-50 dark:bg-navy-800/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10">
+                                <i data-lucide="info" class="w-8 h-8 text-slate-300 mx-auto mb-2"></i>
+                                <p class="text-xs text-slate-500">Belum ada data pembayaran</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Chart Period Stats -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="chartStatsBar">
+                <!-- Total Periode -->
+                <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl hover:shadow-accent-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-accent-500/10 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                    <div class="relative">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-lg shadow-accent-500/30">
+                                <i data-lucide="sigma" class="w-6 h-6 text-white"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Periode</p>
+                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2" id="statTotal">Rp 0</h3>
+                        <div class="flex items-center gap-2 text-xs text-slate-400">
+                            <i data-lucide="calendar" class="w-3 h-3"></i>
+                            <span>Akumulasi penjualan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tertinggi -->
+                <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl hover:shadow-success/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-success/10 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                    <div class="relative">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-lg shadow-success/30">
+                                <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tertinggi</p>
+                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2" id="statHighest">Rp 0</h3>
+                        <div class="flex items-center gap-2 text-xs text-slate-400">
+                            <i data-lucide="arrow-up-circle" class="w-3 h-3"></i>
+                            <span>Penjualan tertinggi</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terendah -->
+                <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl hover:shadow-warning/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-warning/10 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                    <div class="relative">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-warning to-warning/80 flex items-center justify-center shadow-lg shadow-warning/30">
+                                <i data-lucide="trending-down" class="w-6 h-6 text-white"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Terendah</p>
+                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2" id="statLowest">Rp 0</h3>
+                        <div class="flex items-center gap-2 text-xs text-slate-400">
+                            <i data-lucide="arrow-down-circle" class="w-3 h-3"></i>
+                            <span>Penjualan terendah</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rata-rata -->
+                <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                    <div class="relative">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                                <i data-lucide="equal" class="w-6 h-6 text-white"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Rata-rata</p>
+                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2" id="statAverage">Rp 0</h3>
+                        <div class="flex items-center gap-2 text-xs text-slate-400">
+                            <i data-lucide="bar-chart-2" class="w-3 h-3"></i>
+                            <span>Rata-rata harian</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 
             <!-- Bottom Section: Top Products & Recent Transactions -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -482,13 +562,15 @@ let paymentMethods = [
     { name: 'Cash', color: '#22C55E', icon: 'banknote', percentage: 0, count: 0 },
     { name: 'QRIS', color: '#3B82F6', icon: 'qr-code', percentage: 0, count: 0 },
     { name: 'Debit', color: '#F59E0B', icon: 'credit-card', percentage: 0, count: 0 },
-    { name: 'E-Wallet', color: '#8B5CF6', icon: 'wallet', percentage: 0, count: 0 }
+    { name: 'E-Wallet', color: '#8B5CF6', icon: 'wallet', percentage: 0, count: 0 },
+    { name: 'Card', color: '#EC4899', icon: 'credit-card', percentage: 0, count: 0 },
+    { name: 'Bank', color: '#06B6D4', icon: 'building', percentage: 0, count: 0 }
 ];
 
-// Blue gradient for sales chart (fixed color)
+// Blue gradient for sales chart
 function createBlueGradient(ctx) {
     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)'); // Blue
+    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
     gradient.addColorStop(0.5, 'rgba(59, 130, 246, 0.1)');
     gradient.addColorStop(1, 'rgba(59, 130, 246, 0.01)');
     return gradient;
@@ -498,17 +580,17 @@ async function updateChart(period) {
     currentPeriod = period;
     setChartLoading(true);
     document.getElementById('chartPeriodText').textContent = `${period} Hari Terakhir`;
-    
+
     if (chartDataCache[period]) {
         renderSalesChart(chartDataCache[period]);
         setChartLoading(false);
         return;
     }
-    
+
     try {
         const response = await fetch(`/admin/dashboard/chart-data?period=${period}`);
         const data = await response.json();
-        
+
         chartDataCache[period] = data;
         renderSalesChart(data);
         setChartLoading(false);
@@ -526,13 +608,13 @@ function refreshChart() {
 
 function renderSalesChart(data) {
     const ctx = document.getElementById('salesChart').getContext('2d');
-    
+
     if (salesChart) {
         salesChart.destroy();
     }
-    
+
     const gradientFill = createBlueGradient(ctx);
-    
+
     salesChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -590,7 +672,14 @@ function renderSalesChart(data) {
                         color: '#64748B',
                         padding: 10,
                         font: { size: 11, weight: '500' },
-                        callback: (value) => 'Rp ' + (value / 1000).toFixed(0) + 'k'
+                        callback: function(value) {
+                            if (value === 0) return 'Rp 0';
+                            if (value >= 1000000000000) return 'Rp ' + (value / 1000000000000).toFixed(1).replace(/\.0$/, '') + 'T';
+                            if (value >= 1000000000) return 'Rp ' + (value / 1000000000).toFixed(1).replace(/\.0$/, '') + 'M';
+                            if (value >= 1000000) return 'Rp ' + (value / 1000000).toFixed(1).replace(/\.0$/, '') + 'JT';
+                            if (value >= 1000) return 'Rp ' + (value / 1000).toFixed(0) + 'Rb';
+                            return 'Rp ' + value;
+                        }
                     }
                 },
                 x: {
@@ -598,7 +687,10 @@ function renderSalesChart(data) {
                     ticks: {
                         color: '#64748B',
                         padding: 10,
-                        font: { size: 11, weight: '500' }
+                        font: { size: 11, weight: '500' },
+                        autoSkip: false,
+                        maxRotation: 45,
+                        minRotation: 45
                     }
                 }
             },
@@ -614,6 +706,39 @@ function renderSalesChart(data) {
             }
         }
     });
+
+    // Update stats bar
+    updateChartStats(data.data);
+}
+
+function updateChartStats(values) {
+    if (!values || values.length === 0) return;
+    
+    const total = values.reduce((a, b) => a + b, 0);
+    const highest = Math.max(...values);
+    const lowest = Math.min(...values);
+    const average = total / values.length;
+    
+    function formatStat(val) {
+        if (val === 0) return 'Rp 0';
+        if (val >= 1000000000000) return 'Rp ' + (val / 1000000000000).toFixed(1).replace(/\.0$/, '') + 'T';
+        if (val >= 1000000000) return 'Rp ' + (val / 1000000000).toFixed(1).replace(/\.0$/, '') + 'M';
+        if (val >= 1000000) return 'Rp ' + (val / 1000000).toFixed(1).replace(/\.0$/, '') + 'JT';
+        if (val >= 1000) return 'Rp ' + (val / 1000).toFixed(1).replace(/\.0$/, '') + 'Rb';
+        return 'Rp ' + Math.round(val).toLocaleString('id-ID');
+    }
+    
+    const elTotal = document.getElementById('statTotal');
+    const elHighest = document.getElementById('statHighest');
+    const elLowest = document.getElementById('statLowest');
+    const elAverage = document.getElementById('statAverage');
+    
+    if (elTotal) elTotal.textContent = formatStat(total);
+    if (elHighest) elHighest.textContent = formatStat(highest);
+    if (elLowest) elLowest.textContent = formatStat(lowest);
+    if (elAverage) elAverage.textContent = formatStat(average);
+    
+    setTimeout(() => lucide.createIcons(), 100);
 }
 
 function loadPaymentData() {
@@ -626,66 +751,30 @@ function loadPaymentData() {
 }
 
 function renderPaymentChart(data) {
-    const ctx = document.getElementById('paymentChart').getContext('2d');
+    // Chart removed
     
-    if (paymentChart) {
-        paymentChart.destroy();
-    }
-    
-    const methods = ['cash', 'qris', 'debit', 'ewallet'];
+    const methods = ['cash', 'qris', 'debit', 'ewallet', 'card', 'bank'];
     const total = data.total || 1;
     
     paymentMethods = methods.map((key, index) => {
         const count = data[key] || 0;
         const percentage = total > 0 ? ((count / total) * 100).toFixed(0) : 0;
         return {
-            name: key === 'cash' ? 'Cash' : (key === 'qris' ? 'QRIS' : (key === 'debit' ? 'Debit' : 'E-Wallet')),
-            color: ['#22C55E', '#3B82F6', '#F59E0B', '#8B5CF6'][index],
-            icon: ['banknote', 'qr-code', 'credit-card', 'wallet'][index],
+            name: key === 'cash' ? 'Cash' : 
+                  (key === 'qris' ? 'QRIS' : 
+                  (key === 'debit' ? 'Debit' : 
+                  (key === 'ewallet' ? 'E-Wallet' : 
+                  (key === 'card' ? 'Card' : 'Bank')))),
+            color: ['#22C55E', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4'][index],
+            icon: ['banknote', 'qr-code', 'credit-card', 'wallet', 'credit-card', 'building'][index],
             percentage: percentage,
             count: count
         };
     }).filter(m => m.count > 0);
     
-    setPaymentMethods(paymentMethods);
-    document.getElementById('paymentTotal').textContent = total.toLocaleString('id-ID');
-    
-    paymentChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: paymentMethods.map(m => m.name),
-            datasets: [{
-                data: paymentMethods.map(m => m.count),
-                backgroundColor: paymentMethods.map(m => m.color),
-                borderWidth: 0,
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '75%',
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                    titleColor: '#fff',
-                    bodyColor: '#fff',
-                    padding: 12,
-                    cornerRadius: 12,
-                    displayColors: true,
-                    callbacks: {
-                        label: (context) => context.label + ': ' + context.parsed + ' (' + 
-                            paymentMethods[context.dataIndex].percentage + '%)'
-                    }
-                }
-            },
-            animation: {
-                duration: 1500,
-                easing: 'easeInOutQuart'
-            }
-        }
-    });
+    window.dispatchEvent(new CustomEvent('update-payment-methods', {
+        detail: paymentMethods
+    }));
     
     setTimeout(() => lucide.createIcons(), 100);
 }
@@ -808,7 +897,39 @@ function recentTransactionsData() {
     }
 }
 
-// Initialize clock
+// Live Stats Alpine Component
+function liveStatsData() {
+    return {
+        stats: {
+            today_sales: {{ $stats['today_sales'] ?? 0 }},
+            sales_growth: {{ $stats['sales_growth'] ?? 0 }},
+            today_transactions: {{ $stats['today_transactions'] ?? 0 }},
+            transactions_growth: {{ $stats['transactions_growth'] ?? 0 }},
+            low_stock_products: {{ $stats['low_stock_products'] ?? 0 }},
+            total_products: {{ $stats['total_products'] ?? 0 }},
+        },
+        
+        init() {
+            // Poll every 10 seconds
+            setInterval(() => this.fetchStats(), 10000);
+        },
+        
+        async fetchStats() {
+            try {
+                const response = await fetch('/admin/dashboard/live-stats', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await response.json();
+                this.stats = data;
+                this.$nextTick(() => lucide.createIcons());
+            } catch (e) {
+                console.warn('Live stats fetch failed:', e);
+            }
+        }
+    }
+}
+
+// Initialize clock & chart
 document.addEventListener('DOMContentLoaded', function() {
     lucide.createIcons();
     updateClock();

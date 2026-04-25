@@ -35,14 +35,50 @@ class CashierNotification extends Model
         return self::create([
             'user_id' => $userId,
             'type' => 'payment_received',
-            'title' => 'Pembayaran Diterima',
-            'message' => "Transaksi {$transaction->invoice_code} sebesar Rp " . number_format($transaction->grand_total),
+            'title' => 'Duit Masuk, King! 💸',
+            'message' => "Transaksi {$transaction->invoice_code} senilai Rp " . number_format($transaction->grand_total, 0, ',', '.') . " udah lunas, King!",
             'data' => [
                 'transaction_id' => $transaction->id,
                 'invoice_code' => $transaction->invoice_code,
                 'amount' => $transaction->grand_total,
-                'payment_method' => $transaction->payment_method,
             ]
+        ]);
+    }
+
+    public static function createLowStockNotification($userId, $product)
+    {
+        return self::create([
+            'user_id' => $userId,
+            'type' => 'low_stock',
+            'title' => 'Stok Tipis, King! ⚠️',
+            'message' => "Barang {$product->name} sisa {$product->stock} nih, cepetan restok King!",
+            'data' => [
+                'product_id' => $product->id,
+                'stock' => $product->stock,
+            ]
+        ]);
+    }
+
+    public static function createProductNotification($userId, $product, $action = 'updated')
+    {
+        $titles = [
+            'updated' => 'Produk Diperbarui, King! ✨',
+            'created' => 'Produk Baru, King! 🆕',
+            'deleted' => 'Produk Dihapus, King! 🗑️',
+        ];
+
+        $messages = [
+            'updated' => "Data produk {$product->name} baru aja kita permak, King!",
+            'created' => "Ada barang baru nih: {$product->name}, cekidot King!",
+            'deleted' => "Produk {$product->name} udah ilang dari sistem, King!",
+        ];
+
+        return self::create([
+            'user_id' => $userId,
+            'type' => 'product_' . $action,
+            'title' => $titles[$action] ?? 'Info Produk, King!',
+            'message' => $messages[$action] ?? "Ada perubahan di produk {$product->name}, King!",
+            'data' => ['product_id' => $product->id]
         ]);
     }
 }

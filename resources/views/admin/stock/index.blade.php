@@ -18,7 +18,7 @@
                                 <i data-lucide="warehouse" class="w-6 h-6 text-white"></i>
                             </div>
                             <div>
-                                <h1 class="text-3xl font-black bg-gradient-to-r from-navy-900 to-accent-600 dark:from-white dark:to-accent-400 bg-clip-text text-transparent tracking-tight">
+                                <h1 class="text-3xl font-black text-navy-900 dark:text-white tracking-tight">
                                     Manajemen Stok
                                 </h1>
                                 <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Pantau dan kelola inventori produk toko Anda</p>
@@ -304,7 +304,12 @@
             lucide.createIcons();
         } catch (error) {
             console.error('Error loading stock data:', error);
-            alert('Terjadi kesalahan saat memuat data');
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Memuat!',
+                text: 'Terjadi kesalahan saat memuat data stok.',
+                confirmButtonColor: '#ef4444'
+            });
         } finally {
             tableWrapper.style.opacity = '1';
             tableWrapper.style.pointerEvents = 'auto';

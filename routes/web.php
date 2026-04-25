@@ -23,6 +23,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\Customer\CustomerController;
 use App\Http\Controllers\Customer\ChatController;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,11 +32,12 @@ use App\Http\Controllers\Customer\ChatController;
 */
 Route::get('/', function () {
     if (Auth::check()) {
-        return Auth::user()->role === 'cashier'
-            ? redirect()->route('cashier.pos')
-            : redirect()->route('admin.dashboard');
+        $role = Auth::user()->role;
+        if ($role === 'cashier') return redirect()->route('cashier.pos');
+        if ($role === 'customer') return redirect()->route('customer.home');
+        return redirect()->route('admin.dashboard');
     }
-    return redirect()->route('customer.index');
+    return redirect()->route('customer.home');
 });
 
 /*
@@ -83,6 +85,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard/payment-data', [DashboardController::class, 'paymentData'])->name('dashboard.payment-data');
         Route::get('/dashboard/top-products', [DashboardController::class, 'topProducts'])->name('dashboard.top-products');
         Route::get('/dashboard/recent-transactions', [DashboardController::class, 'recentTransactions'])->name('dashboard.recent-transactions');
+        Route::get('/dashboard/live-stats', [DashboardController::class, 'liveStats'])->name('dashboard.live-stats');
         Route::get('/search', [SearchController::class, 'globalSearch'])->name('search');
 
         // Products Management
@@ -93,9 +96,11 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
 
         // Reports Management
-        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-        Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
-        Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.export.pdf');
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/', [ReportController::class, 'index'])->name('index');
+            Route::get('/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');
+            Route::get('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
+        });
 
         // Stock Management
         Route::prefix('stock')->name('stock.')->group(function () {
@@ -113,7 +118,18 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('customers', AdminCustomerController::class)->names('customers');
 
         // User Management
-        Route::resource('users', UserController::class)->except(['show'])->names('users');
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::get('/', [UserController::class, 'index'])->name('index');
+            Route::get('/create', [UserController::class, 'create'])->name('create');
+            Route::post('/', [UserController::class, 'store'])->name('store');
+            Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
+            Route::put('/{user}', [UserController::class, 'update'])->name('update');
+            Route::post('/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('toggle-status');
+            Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
+        });
+
+        // Activity Logs
+        Route::get('/activity-logs', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity-logs');
 
         // Transactions Management
         Route::prefix('transactions')->name('transactions.')->group(function () {
@@ -126,6 +142,16 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('settings')->name('settings.')->group(function () {
             Route::get('/', [SettingController::class, 'index'])->name('index');
             Route::put('/', [SettingController::class, 'update'])->name('update');
+            Route::post('/reset-logo', [SettingController::class, 'resetLogo'])->name('reset-logo');
+        });
+
+        // Payment Providers Management
+        Route::prefix('payment-providers')->name('payment-providers.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\PaymentProviderController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\PaymentProviderController::class, 'store'])->name('store');
+            Route::put('/{provider}', [\App\Http\Controllers\PaymentProviderController::class, 'update'])->name('update');
+            Route::post('/{provider}/toggle', [\App\Http\Controllers\PaymentProviderController::class, 'toggleStatus'])->name('toggle');
+            Route::delete('/{provider}', [\App\Http\Controllers\PaymentProviderController::class, 'destroy'])->name('destroy');
         });
     });
 
@@ -142,7 +168,18 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/transaction', [PosController::class, 'processTransaction'])->name('transaction.store');
         Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions');
         Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
+        
+        // Notifications
+        Route::get('/notifications', [PosController::class, 'getNotifications'])->name('notifications');
+        Route::post('/notifications/read', [PosController::class, 'markNotificationAsRead'])->name('notifications.read');
     });
+
+    // Profile Routes
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::post('/profile/switch-role', [ProfileController::class, 'switchRole'])->name('profile.switch-role');
+    Route::post('/profile/restore-role', [ProfileController::class, 'restoreRole'])->name('profile.restore-role');
 });
 
 /*
@@ -151,7 +188,7 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::prefix('shop')->name('customer.')->group(function () {
-    Route::get('/', [CustomerController::class, 'index'])->name('index');
+    Route::get('/', [CustomerController::class, 'index'])->name('home');
     Route::get('/cart', [CustomerController::class, 'cart'])->name('cart');
     Route::post('/cart/add/{product}', [CustomerController::class, 'addToCart'])->name('cart.add');
     Route::patch('/cart/{id}', [CustomerController::class, 'updateCart'])->name('cart.update');

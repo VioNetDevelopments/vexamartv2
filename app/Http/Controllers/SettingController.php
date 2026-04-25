@@ -76,11 +76,11 @@ class SettingController extends Controller
         $settings = [
             'company_name', 'company_address', 'company_city', 'store_tagline',
             'store_name', 'store_address', 'store_city', 'store_phone', 
-            'store_email', 'receipt_footer', 'tax_rate', 'currency'
+            'store_email', 'receipt_header', 'receipt_footer', 'tax_rate', 'currency', 'default_discount'
         ];
 
         foreach ($settings as $key) {
-            if (isset($validated[$key])) {
+            if (array_key_exists($key, $validated)) {
                 Setting::set($key, $validated[$key]);
             }
         }
