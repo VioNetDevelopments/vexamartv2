@@ -260,47 +260,62 @@
                         </div>
                     </div>
 
-                    <!-- Chart Stats Summary (Back Inside) -->
+                    <!-- Chart Stats Summary (Premium Design) -->
                     <div class="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4" id="chartStatsBar">
                         <!-- Total Periode -->
-                        <div class="group relative bg-slate-50 dark:bg-navy-800/50 rounded-2xl p-4 border border-transparent hover:border-accent-500/20 transition-all duration-300">
-                            <div class="flex items-center gap-3 mb-2">
-                                <div class="w-8 h-8 rounded-lg bg-accent-500/10 flex items-center justify-center text-accent-600">
-                                    <i data-lucide="sigma" class="w-4 h-4"></i>
+                        <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-5 shadow-md shadow-slate-200/50 dark:shadow-black/20 hover:shadow-lg hover:shadow-accent-500/10 transition-all duration-500 hover:-translate-y-1 overflow-hidden border border-slate-100 dark:border-white/5">
+                            <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-accent-500/10 to-transparent rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                            <div class="relative">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-lg shadow-accent-500/30">
+                                        <i data-lucide="sigma" class="w-5 h-5 text-white"></i>
+                                    </div>
                                 </div>
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total</p>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Periode</p>
+                                <h3 class="text-lg font-bold text-navy-900 dark:text-white" id="statTotal">Rp 0</h3>
                             </div>
-                            <p class="text-base font-black text-navy-900 dark:text-white" id="statTotal">Rp 0</p>
                         </div>
+
                         <!-- Tertinggi -->
-                        <div class="group relative bg-slate-50 dark:bg-navy-800/50 rounded-2xl p-4 border border-transparent hover:border-success/20 transition-all duration-300">
-                            <div class="flex items-center gap-3 mb-2">
-                                <div class="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center text-success">
-                                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                        <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-5 shadow-md shadow-slate-200/50 dark:shadow-black/20 hover:shadow-lg hover:shadow-success/10 transition-all duration-500 hover:-translate-y-1 overflow-hidden border border-slate-100 dark:border-white/5">
+                            <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-success/10 to-transparent rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                            <div class="relative">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-lg shadow-success/30">
+                                        <i data-lucide="trending-up" class="w-5 h-5 text-white"></i>
+                                    </div>
                                 </div>
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">High</p>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tertinggi</p>
+                                <h3 class="text-lg font-bold text-navy-900 dark:text-white" id="statHighest">Rp 0</h3>
                             </div>
-                            <p class="text-base font-black text-navy-900 dark:text-white" id="statHighest">Rp 0</p>
                         </div>
+
                         <!-- Terendah -->
-                        <div class="group relative bg-slate-50 dark:bg-navy-800/50 rounded-2xl p-4 border border-transparent hover:border-warning/20 transition-all duration-300">
-                            <div class="flex items-center gap-3 mb-2">
-                                <div class="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center text-warning">
-                                    <i data-lucide="trending-down" class="w-4 h-4"></i>
+                        <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-5 shadow-md shadow-slate-200/50 dark:shadow-black/20 hover:shadow-lg hover:shadow-warning/10 transition-all duration-500 hover:-translate-y-1 overflow-hidden border border-slate-100 dark:border-white/5">
+                            <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-warning/10 to-transparent rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                            <div class="relative">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-warning to-warning/80 flex items-center justify-center shadow-lg shadow-warning/30">
+                                        <i data-lucide="trending-down" class="w-5 h-5 text-white"></i>
+                                    </div>
                                 </div>
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Low</p>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Terendah</p>
+                                <h3 class="text-lg font-bold text-navy-900 dark:text-white" id="statLowest">Rp 0</h3>
                             </div>
-                            <p class="text-base font-black text-navy-900 dark:text-white" id="statLowest">Rp 0</p>
                         </div>
+
                         <!-- Rata-rata -->
-                        <div class="group relative bg-slate-50 dark:bg-navy-800/50 rounded-2xl p-4 border border-transparent hover:border-purple-500/20 transition-all duration-300">
-                            <div class="flex items-center gap-3 mb-2">
-                                <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600">
-                                    <i data-lucide="equal" class="w-4 h-4"></i>
+                        <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-5 shadow-md shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-500 hover:-translate-y-1 overflow-hidden border border-slate-100 dark:border-white/5">
+                            <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/10 to-transparent rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                            <div class="relative">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                                        <i data-lucide="equal" class="w-5 h-5 text-white"></i>
+                                    </div>
                                 </div>
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avg</p>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rata-rata</p>
+                                <h3 class="text-lg font-bold text-navy-900 dark:text-white" id="statAverage">Rp 0</h3>
                             </div>
-                            <p class="text-base font-black text-navy-900 dark:text-white" id="statAverage">Rp 0</p>
                         </div>
                     </div>
                 </div>

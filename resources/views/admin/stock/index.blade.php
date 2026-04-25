@@ -126,7 +126,7 @@
                             <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300" :class="{'rotate-180': open}"></i>
                         </button>
                         <div x-show="open" x-transition 
-                             class="absolute z-50 mt-2 w-full rounded-2xl bg-white dark:bg-navy-900 p-2 shadow-2xl border border-slate-100 dark:border-white/10 max-h-64 overflow-y-auto"
+                             class="absolute z-50 mt-2 w-full rounded-2xl bg-white dark:bg-navy-900 p-2 shadow-2xl border border-slate-100 dark:border-white/10 max-h-64 overflow-y-auto no-scrollbar"
                              style="top: 100%;">
                             <button type="button" @click="selectCategory('', 'Semua Kategori'); open = false"
                                     class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ !request('category') ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">
@@ -150,7 +150,7 @@
                             <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-300" :class="{'rotate-180': open}"></i>
                         </button>
                         <div x-show="open" x-transition 
-                             class="absolute z-50 mt-2 w-full rounded-2xl bg-white dark:bg-navy-900 p-2 shadow-2xl border border-slate-100 dark:border-white/10 max-h-64 overflow-y-auto"
+                             class="absolute z-50 mt-2 w-full rounded-2xl bg-white dark:bg-navy-900 p-2 shadow-2xl border border-slate-100 dark:border-white/10 max-h-64 overflow-y-auto no-scrollbar"
                              style="top: 100%;">
                             <button type="button" @click="selectStock('', 'Semua Stok'); open = false"
                                     class="w-full text-left px-4 py-2 text-sm rounded-lg transition-colors hover:bg-accent-50 dark:hover:bg-accent-900/20 {{ !request('stock_status') ? 'bg-accent-500 text-white' : 'text-slate-600 dark:text-slate-300' }}">

@@ -526,7 +526,7 @@
                         class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
                         <i data-lucide="credit-card" class="h-8 w-8 text-white"></i>
                     </div>
-                    <h3 class="text-2xl font-black text-navy-900 dark:text-white mb-2">Kartu Kredit/Debit</h3>
+                    <h3 class="text-2xl font-black text-navy-900 dark:text-white mb-2">Kartu Kredit</h3>
                     <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Total: <span
                             class="font-bold text-accent-600" x-text="formatRupiah(grandTotal)"></span></p>
                 </div>
@@ -759,7 +759,7 @@
         </div>
 
         <!-- SUCCESS MODAL -->
-        <div x-show="showSuccessModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div x-show="showSuccessModal" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" @click="showSuccessModal = false"></div>
             <div class="relative bg-white dark:bg-navy-900 rounded-3xl p-8 max-w-md w-full shadow-2xl">
                 <div class="flex justify-center mb-6">
@@ -808,7 +808,7 @@
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-slate-500 dark:text-slate-400">Total Pembayaran</span>
                             <span class="text-xl font-bold text-accent-600 dark:text-accent-400"
-                                x-text="formatRupiah(grandTotal)"></span>
+                                x-text="formatRupiah(lastTotal)"></span>
                         </div>
                     </div>
                 </div>
@@ -833,7 +833,7 @@
 
         <!-- LOADING OVERLAY -->
         <div x-show="loading" x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+            class="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm">
             <div class="bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-2xl">
                 <div class="animate-spin rounded-full h-12 w-12 border-4 border-accent-500 border-t-transparent mx-auto">
                 </div>
@@ -850,7 +850,7 @@
                     categoryName: 'Semua Kategori', customerName: 'Pelanggan Umum',
                     discount: 0, paymentMethod: '', paidAmount: 0,
                     loading: false, qrisLoading: false, qrisQrCode: '',
-                    showSuccessModal: false, lastInvoice: '', lastTransaction: null,
+                    showSuccessModal: false, lastInvoice: '', lastTransaction: null, lastTotal: 0,
                     dailySales: 0, dailyTransactions: 0,
                     recentTransactions: [],
                     storeName: '{{ config("app.name") }}',
@@ -947,10 +947,11 @@
                                 });
                             }
                         } else {
+                            const price = Number(product.sell_price) || 0;
                             this.cart.push({
                                 product_id: product.id,
                                 name: product.name,
-                                price: parseFloat(product.sell_price),
+                                price: price,
                                 image: product.image,
                                 qty: 1,
                                 max_stock: product.stock
@@ -1142,7 +1143,17 @@
                                 paid_amount: (this.paymentMethod === 'cash') ? this.paidAmount : this.grandTotal,
                             })
                         })
-                            .then(r => r.json()).then(data => {
+                            .then(async response => {
+                                const isJson = response.headers.get('content-type')?.includes('application/json');
+                                const data = isJson ? await response.json() : null;
+
+                                if (!response.ok) {
+                                    console.error('Server Error:', response.status, data || await response.text());
+                                    throw new Error(data?.message || `Server error: ${response.status}`);
+                                }
+                                return data;
+                            })
+                            .then(data => {
                                 this.loading = false;
                                 if (data.success) {
                                     this.lastInvoice = data.invoice_code;
@@ -1150,13 +1161,18 @@
                                     this.showSuccessModal = true;
                                     this.loadDailySales();
                                     this.resetPaymentModals();
+                                    
+                                    // Keep a temporary copy of the total for the modal before resetting cart
+                                    this.lastTotal = data.transaction.grand_total;
+                                    this.cart = []; // Reset cart on success
                                 } else {
                                     alert(data.message || 'Terjadi kesalahan');
                                 }
                             })
-                            .catch(() => {
+                            .catch(error => {
                                 this.loading = false;
-                                alert('Terjadi kesalahan. Silakan coba lagi.');
+                                console.error('Transaction failed:', error);
+                                alert('Terjadi kesalahan: ' + error.message);
                             });
                     },
 
@@ -1212,13 +1228,17 @@
                     get grandTotal() { return Math.max(0, this.subtotal - this.discount); },
                     get change() { return Math.max(0, this.paidAmount - this.grandTotal); },
 
-                    formatRupiah(amount) { return 'Rp ' + parseFloat(amount || 0).toLocaleString('id-ID'); },
+                    formatRupiah(amount) { 
+                        const num = Number(amount) || 0;
+                        return 'Rp ' + num.toLocaleString('id-ID'); 
+                    },
 
                     newTransaction() {
                         this.cart = [];
                         this.search = '';
                         this.discount = 0;
                         this.paidAmount = 0;
+                        this.lastTotal = 0;
                         this.showSuccessModal = false;
                         this.paymentMethod = '';
                         this.resetPaymentModals();

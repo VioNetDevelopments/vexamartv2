@@ -20,7 +20,6 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\Customer\CustomerController;
 use App\Http\Controllers\Customer\ChatController;
 use App\Http\Controllers\ProfileController;
@@ -86,6 +85,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard/top-products', [DashboardController::class, 'topProducts'])->name('dashboard.top-products');
         Route::get('/dashboard/recent-transactions', [DashboardController::class, 'recentTransactions'])->name('dashboard.recent-transactions');
         Route::get('/dashboard/live-stats', [DashboardController::class, 'liveStats'])->name('dashboard.live-stats');
+        Route::get('/transactions/export', [AdminTransactionController::class, 'exportCsv'])->name('transactions.export');
+        Route::get('/transactions/live-stats', [AdminTransactionController::class, 'liveStats'])->name('transactions.live-stats');
         Route::get('/search', [SearchController::class, 'globalSearch'])->name('search');
 
         // Products Management

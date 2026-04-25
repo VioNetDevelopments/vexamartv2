@@ -149,10 +149,11 @@ class PosController extends Controller
             }
             $invoiceCode = 'VMS-' . $randomCode;
             
-            // Calculate totals
+            // Calculate subtotal and total items
             $subtotal = collect($validated['items'])->sum(function($item) {
                 return $item['price'] * $item['qty'];
             });
+            $totalItems = collect($validated['items'])->sum('qty');
             
             $discountAmount = $validated['discount'] ?? 0;
             $taxRate = SettingHelper::get('tax_rate', 0);
@@ -160,8 +161,7 @@ class PosController extends Controller
             // Grand Total should match frontend: subtotal - discount
             $grandTotal = $subtotal - $discountAmount;
             
-            // Tax is usually included in the price or calculated from subtotal
-            // For report purposes, we keep the tax amount calculation
+            // Tax calculation
             $tax = ($grandTotal * $taxRate) / (100 + $taxRate);
             
             // VALIDASI PEMBAYARAN
@@ -181,12 +181,13 @@ class PosController extends Controller
                 'invoice_code' => $invoiceCode,
                 'user_id' => Auth::id(),
                 'customer_id' => $validated['customer_id'] ?? null,
+                'total_item' => $totalItems,
                 'subtotal' => $subtotal,
                 'discount' => $discountAmount,
                 'tax' => $tax,
                 'grand_total' => $grandTotal,
                 'payment_method' => $validated['payment_method'],
-                'payment_provider' => $request->payment_provider,
+                'payment_provider' => $validated['payment_provider'] ?? null,
                 'paid_amount' => $validated['paid_amount'],
                 'change_amount' => $changeAmount,
                 'payment_status' => 'paid',

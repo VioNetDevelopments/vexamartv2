@@ -60,8 +60,8 @@ class Transaction extends Model
 
     protected $fillable = [
         'invoice_code', 'user_id', 'customer_id', 'total_item', 'subtotal',
-        'discount', 'tax', 'grand_total', 'payment_method', 'payment_status',
-        'paid_amount', 'change_amount', 'notes'
+        'discount', 'tax', 'grand_total', 'payment_method', 'payment_provider',
+        'payment_status', 'paid_amount', 'change_amount', 'notes'
     ];
 
     protected $casts = [

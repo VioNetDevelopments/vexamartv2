@@ -20,6 +20,45 @@
     <!-- Vite -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <!-- Alpine Global State (Must be defined before Alpine initializes) -->
+    <script>
+        function globalState() {
+            const safeGetItem = (key, def) => {
+                try { return localStorage.getItem(key) || def; } catch (e) { return def; }
+            };
+
+            return {
+                darkMode: safeGetItem('darkMode', 'false') === 'true',
+                sidebarOpen: safeGetItem('sidebarOpen', 'true') !== 'false',
+                userMenuOpen: false,
+
+                initGlobal() {
+                    if (this.darkMode) document.documentElement.classList.add('dark');
+                    else document.documentElement.classList.remove('dark');
+
+                    this.$watch('darkMode', value => {
+                        if (value) {
+                            document.documentElement.classList.add('dark');
+                            try { localStorage.setItem('darkMode', 'true'); } catch (e) {}
+                        } else {
+                            document.documentElement.classList.remove('dark');
+                            try { localStorage.setItem('darkMode', 'false'); } catch (e) {}
+                        }
+                    });
+                },
+
+                toggleDarkMode() {
+                    this.darkMode = !this.darkMode;
+                },
+
+                toggleSidebar() {
+                    this.sidebarOpen = !this.sidebarOpen;
+                    try { localStorage.setItem('sidebarOpen', this.sidebarOpen); } catch (e) {}
+                }
+            }
+        }
+    </script>
+
     <style>
         [x-cloak] {
             display: none !important;
@@ -367,47 +406,8 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Alpine Global State -->
+    <!-- Alpine Global State Removed from bottom -->
     <script>
-        function globalState() {
-            return {
-                darkMode: false,
-                sidebarOpen: true,
-                userMenuOpen: false,
-
-                initGlobal() {
-                    try {
-                        this.darkMode = localStorage.getItem('darkMode') === 'true';
-                        this.sidebarOpen = localStorage.getItem('sidebarOpen') !== 'false';
-                        if (this.darkMode) document.documentElement.classList.add('dark');
-                        else document.documentElement.classList.remove('dark');
-                    } catch (e) {
-                        console.warn('Storage access blocked, using defaults');
-                    }
-
-                    this.$watch('darkMode', value => {
-                        if (value) {
-                            document.documentElement.classList.add('dark');
-                            try { localStorage.setItem('darkMode', 'true'); } catch (e) {}
-                        } else {
-                            document.documentElement.classList.remove('dark');
-                            try { localStorage.setItem('darkMode', 'false'); } catch (e) {}
-                        }
-                    });
-                },
-
-                toggleDarkMode() {
-                    this.darkMode = !this.darkMode;
-                },
-
-                toggleSidebar() {
-                    this.sidebarOpen = !this.sidebarOpen;
-                    try { localStorage.setItem('sidebarOpen', this.sidebarOpen); } catch (e) {}
-                }
-            }
-        }
-
-        // Initialize Icons Once
         document.addEventListener('DOMContentLoaded', function () {
             // Small delay to ensure DOM is ready
             setTimeout(() => {

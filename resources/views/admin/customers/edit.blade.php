@@ -157,19 +157,19 @@
                                         <template x-if="selected === 'regular'">
                                             <div class="flex items-center gap-2">
                                                 <i data-lucide="user" class="w-4 h-4 text-slate-500"></i>
-                                                <span>Regular</span>
+                                                <span class="dark:text-white">Regular</span>
                                             </div>
                                         </template>
                                         <template x-if="selected === 'gold'">
                                             <div class="flex items-center gap-2">
                                                 <i data-lucide="star" class="w-4 h-4 text-yellow-500"></i>
-                                                <span>Gold Member</span>
+                                                <span class="dark:text-white">Gold Member</span>
                                             </div>
                                         </template>
                                         <template x-if="selected === 'platinum'">
                                             <div class="flex items-center gap-2">
                                                 <i data-lucide="crown" class="w-4 h-4 text-purple-500"></i>
-                                                <span>Platinum Member</span>
+                                                <span class="dark:text-white">Platinum Member</span>
                                             </div>
                                         </template>
                                     </div>
@@ -179,19 +179,19 @@
                                 <div x-show="open" x-transition
                                      class="absolute z-50 mt-2 w-full rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-white/10 shadow-lg overflow-hidden">
                                     <button type="button" @click="selected = 'regular'; open = false"
-                                            class="w-full flex items-center gap-2 px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors"
+                                            class="w-full flex items-center gap-2 px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors dark:text-white"
                                             :class="selected === 'regular' ? 'bg-blue-50 dark:bg-blue-900/20' : ''">
                                         <i data-lucide="user" class="w-4 h-4 text-slate-500"></i>
                                         <span>Regular</span>
                                     </button>
                                     <button type="button" @click="selected = 'gold'; open = false"
-                                            class="w-full flex items-center gap-2 px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors"
+                                            class="w-full flex items-center gap-2 px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors dark:text-white"
                                             :class="selected === 'gold' ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''">
                                         <i data-lucide="star" class="w-4 h-4 text-yellow-500"></i>
                                         <span>Gold Member</span>
                                     </button>
                                     <button type="button" @click="selected = 'platinum'; open = false"
-                                            class="w-full flex items-center gap-2 px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors"
+                                            class="w-full flex items-center gap-2 px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors dark:text-white"
                                             :class="selected === 'platinum' ? 'bg-purple-50 dark:bg-purple-900/20' : ''">
                                         <i data-lucide="crown" class="w-4 h-4 text-purple-500"></i>
                                         <span>Platinum Member</span>
@@ -293,6 +293,15 @@ document.addEventListener('DOMContentLoaded', function() {
         initIcons();
     }, 100);
     
+    // Phone formatting
+    const phoneInput = document.querySelector('input[name="phone"]');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let x = e.target.value.replace(/\D/g, '').match(/(\d{0,4})(\d{0,4})(\d{0,4})/);
+            e.target.value = !x[2] ? x[1] : x[1] + '-' + x[2] + (x[3] ? '-' + x[3] : '');
+        });
+    }
+
     // Re-initialize icons after Alpine updates
     document.addEventListener('alpine:initialized', () => {
         setTimeout(() => {
