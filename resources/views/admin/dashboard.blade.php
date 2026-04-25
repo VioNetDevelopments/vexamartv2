@@ -247,7 +247,7 @@
                     </div>
 
                     <!-- Chart Container -->
-                    <div class="h-64 relative">
+                    <div class="h-80 relative">
                         <canvas id="salesChart"></canvas>
 
                         <!-- Loading Animation -->
@@ -257,6 +257,50 @@
                                 <div class="animate-spin rounded-full h-10 w-10 border-4 border-accent-500 border-t-transparent"></div>
                                 <p class="text-sm text-slate-500 dark:text-slate-400">Memuat data...</p>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart Stats Summary (Back Inside) -->
+                    <div class="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4" id="chartStatsBar">
+                        <!-- Total Periode -->
+                        <div class="group relative bg-slate-50 dark:bg-navy-800/50 rounded-2xl p-4 border border-transparent hover:border-accent-500/20 transition-all duration-300">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-accent-500/10 flex items-center justify-center text-accent-600">
+                                    <i data-lucide="sigma" class="w-4 h-4"></i>
+                                </div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total</p>
+                            </div>
+                            <p class="text-base font-black text-navy-900 dark:text-white" id="statTotal">Rp 0</p>
+                        </div>
+                        <!-- Tertinggi -->
+                        <div class="group relative bg-slate-50 dark:bg-navy-800/50 rounded-2xl p-4 border border-transparent hover:border-success/20 transition-all duration-300">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center text-success">
+                                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                                </div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">High</p>
+                            </div>
+                            <p class="text-base font-black text-navy-900 dark:text-white" id="statHighest">Rp 0</p>
+                        </div>
+                        <!-- Terendah -->
+                        <div class="group relative bg-slate-50 dark:bg-navy-800/50 rounded-2xl p-4 border border-transparent hover:border-warning/20 transition-all duration-300">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center text-warning">
+                                    <i data-lucide="trending-down" class="w-4 h-4"></i>
+                                </div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Low</p>
+                            </div>
+                            <p class="text-base font-black text-navy-900 dark:text-white" id="statLowest">Rp 0</p>
+                        </div>
+                        <!-- Rata-rata -->
+                        <div class="group relative bg-slate-50 dark:bg-navy-800/50 rounded-2xl p-4 border border-transparent hover:border-purple-500/20 transition-all duration-300">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600">
+                                    <i data-lucide="equal" class="w-4 h-4"></i>
+                                </div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avg</p>
+                            </div>
+                            <p class="text-base font-black text-navy-900 dark:text-white" id="statAverage">Rp 0</p>
                         </div>
                     </div>
                 </div>
@@ -317,82 +361,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Chart Period Stats -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="chartStatsBar">
-                <!-- Total Periode -->
-                <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl hover:shadow-accent-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-accent-500/10 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
-                    <div class="relative">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-lg shadow-accent-500/30">
-                                <i data-lucide="sigma" class="w-6 h-6 text-white"></i>
-                            </div>
-                        </div>
-                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Periode</p>
-                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2" id="statTotal">Rp 0</h3>
-                        <div class="flex items-center gap-2 text-xs text-slate-400">
-                            <i data-lucide="calendar" class="w-3 h-3"></i>
-                            <span>Akumulasi penjualan</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tertinggi -->
-                <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl hover:shadow-success/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-success/10 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
-                    <div class="relative">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-lg shadow-success/30">
-                                <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
-                            </div>
-                        </div>
-                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tertinggi</p>
-                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2" id="statHighest">Rp 0</h3>
-                        <div class="flex items-center gap-2 text-xs text-slate-400">
-                            <i data-lucide="arrow-up-circle" class="w-3 h-3"></i>
-                            <span>Penjualan tertinggi</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Terendah -->
-                <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl hover:shadow-warning/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-warning/10 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
-                    <div class="relative">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-warning to-warning/80 flex items-center justify-center shadow-lg shadow-warning/30">
-                                <i data-lucide="trending-down" class="w-6 h-6 text-white"></i>
-                            </div>
-                        </div>
-                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Terendah</p>
-                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2" id="statLowest">Rp 0</h3>
-                        <div class="flex items-center gap-2 text-xs text-slate-400">
-                            <i data-lucide="arrow-down-circle" class="w-3 h-3"></i>
-                            <span>Penjualan terendah</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Rata-rata -->
-                <div class="group relative bg-white dark:bg-navy-900 rounded-2xl p-6 shadow-lg shadow-slate-200/50 dark:shadow-black/20 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
-                    <div class="relative">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                                <i data-lucide="equal" class="w-6 h-6 text-white"></i>
-                            </div>
-                        </div>
-                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Rata-rata</p>
-                        <h3 class="text-2xl font-bold text-navy-900 dark:text-white mb-2" id="statAverage">Rp 0</h3>
-                        <div class="flex items-center gap-2 text-xs text-slate-400">
-                            <i data-lucide="bar-chart-2" class="w-3 h-3"></i>
-                            <span>Rata-rata harian</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
 
             <!-- Bottom Section: Top Products & Recent Transactions -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
